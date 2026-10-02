@@ -37,6 +37,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
                     'client' => new \App\Mail\PrecommandeRecue($p),
                     'paiement' => new \App\Mail\CaptureRecue($p),
                     'commande' => new \App\Mail\NouvellePrecommande($p),
+                    'valide' => new \App\Mail\PaiementValide($p),
+                    'valide-equipe' => new \App\Mail\PaiementValideEquipe($p, auth()->user()->name),
                     default => abort(404),
                 };
             });

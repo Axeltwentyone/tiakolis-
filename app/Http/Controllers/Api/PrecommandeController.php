@@ -10,19 +10,16 @@ use App\Mail\PrecommandeRecue;
 use App\Models\Precommande;
 use App\Models\Produit;
 use App\Models\Stock;
+use App\Support\Courrier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use RuntimeException;
-use Throwable;
 
 /**
  * Parcours du tiroir panier :
@@ -75,9 +72,9 @@ class PrecommandeController extends Controller
 
         RateLimiter::hit($cle, self::FENETRE);
         if ($p->email) {
-            $this->envoyer($p->email, new PrecommandeRecue($p), $p);
+            Courrier::envoyer($p->email, new PrecommandeRecue($p), $p->reference);
         }
-        $this->envoyerEquipe(new NouvellePrecommande($p), $p);
+        Courrier::envoyerEquipe(new NouvellePrecommande($p), $p->reference);
 
         return response()->json($this->resume($p) + ['jeton' => $jeton], 201);
     }
@@ -137,7 +134,7 @@ class PrecommandeController extends Controller
             Storage::disk('local')->delete($ancienne);
         }
 
-        $this->envoyerEquipe(new CaptureRecue($p), $p);
+        Courrier::envoyerEquipe(new CaptureRecue($p), $p->reference);
 
         return response()->json(['reference' => $p->reference, 'statut' => $p->statut->value]);
     }
@@ -235,24 +232,6 @@ class PrecommandeController extends Controller
             'adresse' => $p->adresse,
             'telephone' => $p->telephone,
         ];
-    }
-
-    /** Un e-mail qui échoue ne doit pas faire échouer la commande, déjà enregistrée. */
-    private function envoyer(string|array $a, Mailable $mail, Precommande $p): void
-    {
-        try {
-            Mail::to($a)->send($mail);
-        } catch (Throwable $e) {
-            Log::error('E-mail non envoyé ('.class_basename($mail).") pour {$p->reference}", ['erreur' => $e->getMessage()]);
-        }
-    }
-
-    private function envoyerEquipe(Mailable $mail, Precommande $p): void
-    {
-        $equipe = array_filter(array_map('trim', explode(',', (string) config('services.precommandes.notification_email'))));
-        if ($equipe) {
-            $this->envoyer($equipe, $mail, $p);
-        }
     }
 
     private function erreur(string $message, int $code = 400): JsonResponse

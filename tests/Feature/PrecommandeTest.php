@@ -128,4 +128,23 @@ class PrecommandeTest extends TestCase
         $this->commande([['piece' => 'melo-noir', 'taille' => 'M', 'quantite' => 1]], ['commune' => 'Bouaké'])
             ->assertStatus(400)->assertJson(['erreur' => 'Choisis ta commune à Abidjan.']);
     }
+
+    public function test_valider_le_paiement_previent_le_client_et_toute_l_equipe(): void
+    {
+        Mail::fake();
+        config(['services.precommandes.notification_email' => 'equipe@example.test']);
+        \App\Models\User::factory()->create(['email' => 'admin2@example.test']);
+        \App\Models\User::factory()->create(['email' => 'admin3@example.test', 'recoit_mails' => false]);
+
+        $this->commande([['piece' => 'melo-noir', 'taille' => 'M', 'quantite' => 1]], ['email' => 'favor@example.test'])->assertCreated();
+        $equipe = \App\Support\Courrier::equipe(); // NOTIFICATION_EMAIL + admins qui reçoivent les e-mails
+        $this->assertContains('admin2@example.test', $equipe);
+        $this->assertNotContains('admin3@example.test', $equipe); // a refusé
+        Mail::assertSent(NouvellePrecommande::class, count($equipe));
+
+        Precommande::first()->update(['statut' => Statut::Payee]);
+        Mail::assertSent(\App\Mail\PaiementValide::class, fn ($m) => $m->hasTo('favor@example.test'));
+        Mail::assertSent(\App\Mail\PaiementValideEquipe::class, count($equipe));
+        Mail::assertNotSent(\App\Mail\PaiementValideEquipe::class, fn ($m) => $m->hasTo('admin3@example.test'));
+    }
 }

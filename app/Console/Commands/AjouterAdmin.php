@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
 
+use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\password;
 use function Laravel\Prompts\text;
 
@@ -28,9 +29,11 @@ class AjouterAdmin extends Command
             return self::FAILURE;
         }
 
-        User::updateOrCreate(['email' => $email], ['name' => $nom, 'password' => $mdp]);
+        $mails = confirm('Recevoir les e-mails de commandes et de paiements ?', default: $existant?->recoit_mails ?? true, yes: 'Oui', no: 'Non');
+
+        User::updateOrCreate(['email' => $email], ['name' => $nom, 'password' => $mdp, 'recoit_mails' => $mails]);
         $this->info($existant ? "Mot de passe de {$email} mis à jour." : "Compte créé : {$email} peut se connecter sur ".url('/admin'));
-        $this->line('Comptes du back office : '.User::orderBy('name')->pluck('email')->implode(', '));
+        $this->table(['Compte', 'Prénom', 'Reçoit les e-mails'], User::orderBy('name')->get()->map(fn ($u) => [$u->email, $u->name, $u->recoit_mails ? 'oui' : 'non']));
 
         return self::SUCCESS;
     }

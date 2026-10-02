@@ -32,7 +32,7 @@ php artisan serve               # http://localhost:8000
 
 - **Stock limité** : chaque taille de chaque pièce a un stock (`stocks`). Une précommande le décrémente dans une transaction verrouillée (on ne vend jamais plus que le stock). Passer une précommande en « Annulée » (ou la supprimer) remet les pièces en stock.
 - **Prix** : toujours recalculés côté serveur, à partir de la base.
-- **E-mails** : à `NOTIFICATION_EMAIL` à chaque nouvelle commande et à chaque capture Wave reçue (capture en pièce jointe) ; au client seulement s'il a donné son e-mail. En local, `MAIL_MAILER=log` : les e-mails sont écrits dans `storage/logs/laravel.log`. En production, brancher un service SMTP (Brevo, Resend, Mailgun…).
+- **E-mails** : l'équipe (`NOTIFICATION_EMAIL` + chaque admin qui a répondu oui dans `admin:ajouter`) reçoit « Nouvelle commande », « Nouveau paiement Wave » (capture jointe) et « Paiement validé ». Le client (s'il a donné son e-mail) reçoit « Merci pour ta précommande » puis « C'est validé ! » quand un admin passe la commande en « Payée ». Les échecs d'envoi sont notés dans `storage/logs/laravel.log`. En local, `MAIL_MAILER=log` : les e-mails sont écrits dans `storage/logs/laravel.log`. En production, brancher un service SMTP (Brevo, Resend, Mailgun…).
 - **Photos** : les photos d'origine sont dans `public/assets/`. Celles envoyées depuis le back office vont dans `storage/app/public/produits/`.
 - **Anti-spam** : pot de miel + 5 précommandes par IP / 10 min. Connexion au back office : 5 essais par minute.
 - **Couleurs et polices** : `resources/css/theme.css`, partagé par le site et le back office.

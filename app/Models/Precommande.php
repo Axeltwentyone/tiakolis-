@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Enums\Statut;
+use App\Mail\PaiementValide;
+use App\Mail\PaiementValideEquipe;
+use App\Support\Courrier;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
@@ -68,6 +71,16 @@ class Precommande extends Model
                 $p->ajusterStock(+1);
             } elseif ($avant === Statut::Annulee && $apres !== Statut::Annulee) {
                 $p->ajusterStock(-1);
+            }
+        });
+
+        // paiement validé (passage en « Payée ») : e-mail au client et à l'équipe
+        static::updated(function (Precommande $p) {
+            if ($p->wasChanged('statut') && $p->statut === Statut::Payee) {
+                if ($p->email) {
+                    Courrier::envoyer($p->email, new PaiementValide($p), $p->reference);
+                }
+                Courrier::envoyerEquipe(new PaiementValideEquipe($p, auth()->user()?->name), $p->reference);
             }
         });
 

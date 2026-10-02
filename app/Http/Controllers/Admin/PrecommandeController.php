@@ -35,7 +35,12 @@ class PrecommandeController extends Controller
         $data = $request->validate(['statut' => ['required', Rule::enum(Statut::class)]]);
         $precommande->update($data); // « Annulée » remet les pièces en stock (événement du modèle)
 
-        return back()->with('ok', "{$precommande->reference} : ".$precommande->statut->label().'.');
+        $message = "{$precommande->reference} : ".$precommande->statut->label().'.';
+        if ($precommande->wasChanged('statut') && $precommande->statut === Statut::Payee) {
+            $message .= $precommande->email ? ' E-mail « C\'est validé ! » envoyé au client.' : ' Pas d\'e-mail client : préviens-le sur WhatsApp.';
+        }
+
+        return back()->with('ok', $message);
     }
 
     public function update(Request $request, Precommande $precommande): RedirectResponse

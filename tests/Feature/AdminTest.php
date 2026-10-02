@@ -101,7 +101,10 @@ class AdminTest extends TestCase
             ->expectsQuestion('Prénom', 'Awa')
             ->expectsQuestion('Mot de passe (10 caractères minimum)', 'un-long-secret')
             ->expectsQuestion('Confirme le mot de passe', 'un-long-secret')
+            ->expectsConfirmation('Recevoir les e-mails de commandes et de paiements ?', 'yes')
             ->assertSuccessful();
+
+        $this->assertContains('awa@example.test', \App\Support\Courrier::equipe());
 
         $this->post('/admin/connexion', ['email' => 'awa@example.test', 'password' => 'un-long-secret'])->assertRedirect('/admin');
     }
