@@ -52,7 +52,10 @@ Dans les options : `upload_max_filesize = 10M`, `post_max_size = 12M` (captures 
 **3. Code (SSH)** :
 
 ```sh
-cd ~ && git clone https://github.com/<compte>/<depot>.git tiakolise && cd tiakolise
+# le dossier ~/tiakoliseetfier existe déjà (créé par cPanel avec le domaine) : on y récupère le dépôt
+cd ~/tiakoliseetfier
+git init -b main && git remote add origin https://github.com/Axeltwentyone/tiakolis-.git
+git fetch origin && git checkout -f -t origin/main
 composer install --no-dev --optimize-autoloader
 cp .env.example .env && php artisan key:generate
 nano .env   # voir ci-dessous
@@ -61,7 +64,7 @@ php artisan storage:link
 php artisan optimize
 ```
 
-**4. Domaine (cPanel → Domaines)** : faire pointer la racine du domaine sur `~/tiakolise/public` (jamais sur `~/tiakolise` : le `.env` serait lisible).
+**4. Domaine (cPanel → Domaines)** : la racine du domaine est `~/tiakoliseetfier/public` (jamais `~/tiakoliseetfier` : le `.env` serait lisible).
 
 **5. `.env` de production** :
 
@@ -86,10 +89,12 @@ ADMIN_EMAIL=…                     # compte du back office créé par --seed
 ADMIN_PASSWORD=…                  # long et unique
 ```
 
+**Ajouter un admin** (ou changer un mot de passe) : `php artisan admin:ajouter`. Pour que plusieurs personnes reçoivent les e-mails de commande et de paiement : `NOTIFICATION_EMAIL=a@x.com,b@y.com,c@z.com`.
+
 **6. Mettre à jour le site** après un `git push` :
 
 ```sh
-cd ~/tiakolise && git pull && composer install --no-dev --optimize-autoloader && php artisan migrate --force && php artisan optimize
+cd ~/tiakoliseetfier && git pull && composer install --no-dev --optimize-autoloader && php artisan migrate --force && php artisan optimize
 ```
 
 **Délivrabilité** : activer SPF et DKIM pour le domaine (cPanel → Délivrabilité des e-mails), sinon les mails risquent d'arriver en spam.

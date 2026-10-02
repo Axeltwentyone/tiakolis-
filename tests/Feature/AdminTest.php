@@ -93,4 +93,16 @@ class AdminTest extends TestCase
         $this->assertNotNull(Produit::find(1));
         $this->assertSame(1, Precommande::count());
     }
+
+    public function test_commande_pour_ajouter_un_admin(): void
+    {
+        $this->artisan('admin:ajouter')
+            ->expectsQuestion('E-mail', 'awa@example.test')
+            ->expectsQuestion('Prénom', 'Awa')
+            ->expectsQuestion('Mot de passe (10 caractères minimum)', 'un-long-secret')
+            ->expectsQuestion('Confirme le mot de passe', 'un-long-secret')
+            ->assertSuccessful();
+
+        $this->post('/admin/connexion', ['email' => 'awa@example.test', 'password' => 'un-long-secret'])->assertRedirect('/admin');
+    }
 }
