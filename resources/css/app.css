@@ -1,0 +1,208 @@
+@import "tailwindcss" source(none);
+@import "./theme.css"; /* palette et typo partagées avec le back office */
+@source "../views/site.blade.php";
+@source "../js/app.js";
+
+
+:root{--gutter:clamp(16px,2.4vw,36px);color-scheme:dark}
+/* Layout : 3 scènes plein écran — (1) colonnes vidéo du shooting, (2) un t-shirt au centre qui change au scroll, (3) mur de télés + pellicule de mots */
+/* règles de base dans @layer base pour que les utilitaires Tailwind puissent les surcharger */
+@layer base{
+  html,body{margin:0}
+  body{background:var(--color-nuit);color:var(--color-creme);font-family:var(--font-body);font-size:16px;line-height:1.5;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+  img,video{max-width:100%;display:block}
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--color-ocre);outline-offset:3px}
+}
+
+/* ============ 0. CHARGEMENT — les mots montent un par un, puis le rideau glisse vers le haut ============ */
+.intro{display:none}
+.intro-on body{overflow:hidden}
+.intro-on .intro{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:var(--gutter);background:var(--color-nuit);cursor:pointer;
+  transition:translate .9s cubic-bezier(.76,0,.24,1)}
+.intro::after{content:"";position:absolute;left:0;right:0;bottom:0;height:6px;background:var(--color-rouge)} /* liseré rouge au bas du rideau */
+.intro.is-out{translate:0 -100%}
+.intro__txt{margin:0;max-width:13ch;text-align:center;font:400 clamp(48px,9vw,150px)/.92 var(--font-display);text-transform:uppercase;color:var(--color-creme)}
+.intro__w{display:inline-block;overflow:hidden;vertical-align:top;padding:.2em 0 .06em;margin-top:-.2em} /* padding-top : place pour les accents des majuscules (É) */
+.intro__w>span{display:inline-block;translate:0 110%;animation:introMot .65s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--i) * 120ms + 150ms)}
+.intro__w.is-ocre{color:var(--color-ocre)}
+.intro__w.is-red{color:var(--color-rouge)}
+@keyframes introMot{to{translate:0 0}}
+/* le hero attend que le rideau monte pour lancer ses animations */
+.intro-on:not(.intro-part) :is(.hero__logo,.hero__col video){animation-play-state:paused}
+
+/* ---------- Marquee générique ---------- */
+.marquee{overflow:hidden;white-space:nowrap;position:relative}
+.marquee__track{display:inline-flex;animation:defile 38s linear infinite;will-change:transform}
+.marquee__track span{font-family:var(--font-body);font-style:italic;font-stretch:100%;font-weight:500;text-transform:uppercase;letter-spacing:.02em;padding-inline:2.2em;position:relative}
+.marquee__track span::after{content:"";position:absolute;right:-.25em;top:50%;width:.5em;height:2px;background:currentColor;opacity:.7}
+@keyframes defile{to{transform:translateX(-50%)}}
+
+/* ============ 1. HERO ============ */
+.hero{height:100vh;height:100svh;min-height:560px;display:grid;grid-template-rows:auto 1fr auto;background:var(--color-nuit)}
+.hero__top{display:flex;justify-content:center;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 14px) var(--gutter) 14px}
+.hero__logo{height:clamp(58px,8vh,92px);width:auto;transform:rotate(-4deg);animation:logoIn 1.1s cubic-bezier(.2,.8,.2,1) both}
+@keyframes logoIn{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.hero__cols{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(8px,1.4vw,22px);min-height:0}
+.hero__col{position:relative;overflow:hidden;background:#1a1310;min-height:0}
+.hero__col video{width:100%;height:100%;object-fit:cover;animation:colIn 1.2s cubic-bezier(.2,.8,.2,1) both}
+.hero__col:nth-child(2) video{animation-delay:.12s}
+.hero__col:nth-child(3) video{animation-delay:.24s}
+.hero__col:nth-child(4) video{animation-delay:.36s}
+@keyframes colIn{from{transform:scale(1.15);filter:brightness(.2)}to{transform:none;filter:none}}
+.hero__col figcaption{position:absolute;left:10px;bottom:8px;font:600 11px/1 var(--font-body);letter-spacing:.14em;text-transform:uppercase;color:var(--color-creme);opacity:.75;mix-blend-mode:difference}
+.hero .marquee{padding:18px 0 calc(18px + env(safe-area-inset-bottom,0px));font-size:clamp(15px,1.5vw,22px)}
+.hero h1{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ============ 2. LA COLLECTION — un t-shirt au centre, le scroll change de pièce, le survol montre le dos ============ */
+.rack{position:relative;height:500vh; /* recalculé en JS : (nombre de pièces + 1) × 100vh */background:var(--color-terre)}
+.rack__stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;background:var(--color-terre) url("/assets/papier.jpg") center/cover}
+.rack__stage::before{content:"";position:absolute;inset:0;background:var(--color-terre);mix-blend-mode:multiply;opacity:.35;pointer-events:none}
+.rack__head{position:absolute;inset:0 0 auto 0;text-align:center;padding-top:clamp(24px,4.5vh,48px);z-index:4;pointer-events:none}
+.rack__head p{margin:0;font-style:italic;font-weight:500;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(15px,1.5vw,21px)}
+.rack__head p+p{margin-top:clamp(8px,1.6vh,16px);transform:rotate(1.1deg)}
+/* nom géant derrière le t-shirt */
+.rack__names{position:absolute;inset:0;display:grid;place-items:center;z-index:1;pointer-events:none}
+.rack__name{grid-area:1/1;font:400 clamp(72px,17vw,300px)/.82 var(--font-display);text-transform:uppercase;text-align:center;color:var(--color-nuit);opacity:0;
+  transform:translateY(12vh);transition:opacity .6s,transform .8s cubic-bezier(.7,0,.2,1)}
+.rack__name.is-before{transform:translateY(-12vh)}
+.rack__name.is-active{opacity:.9;transform:none}
+/* t-shirts */
+.rack__slides{position:absolute;inset:0;z-index:2}
+.slide{position:absolute;left:50%;top:52%;width:min(58vh,84vw,640px);aspect-ratio:1/.86;margin:0;
+  transform:translate(-50%,-50%) translateY(70vh) rotate(6deg);opacity:0;transition:transform .9s cubic-bezier(.7,0,.2,1),opacity .5s;pointer-events:none}
+.slide.is-before{transform:translate(-50%,-50%) translateY(-70vh) rotate(-6deg)}
+.slide.is-active{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
+.tee{position:relative;width:100%;height:100%;perspective:1600px;cursor:pointer;display:block;border:0;padding:0;background:none}
+.tee__inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .8s cubic-bezier(.3,1.3,.5,1);animation:flotte 5s ease-in-out infinite}
+.tee__face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:grid;place-items:center}
+.tee__face img{max-width:100%;max-height:100%;filter:drop-shadow(0 30px 30px rgba(60,20,5,.4))}
+.tee__face--dos{transform:rotateY(180deg)}
+.tee:hover .tee__inner,.tee.is-flipped .tee__inner{transform:rotateY(180deg)}
+@keyframes flotte{50%{translate:0 -10px}}
+/* infos */
+.rack__foot{position:absolute;left:var(--gutter);right:var(--gutter);bottom:calc(22px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-between;align-items:flex-end;gap:16px;z-index:4}
+.rack__info{display:grid;gap:6px;color:var(--color-nuit)}
+.rack__count{font:400 clamp(40px,5vw,72px)/.9 var(--font-display);font-variant-numeric:tabular-nums}
+.rack__count small{font-size:.42em;opacity:.6}
+.rack__detail{font:600 13px/1.3 var(--font-body);letter-spacing:.14em;text-transform:uppercase}
+.rack__hint{font:italic 500 13px/1.3 var(--font-body);color:var(--color-creme)}
+.rack__dots{position:absolute;right:var(--gutter);top:50%;transform:translateY(-50%);display:grid;gap:12px;z-index:4}
+.rack__dots span{width:10px;height:10px;border-radius:50%;border:2px solid var(--color-nuit);transition:background .3s,transform .3s}
+.rack__dots span.is-active{background:var(--color-nuit);transform:scale(1.25)}
+.cta{display:inline-flex;align-items:center;gap:.6em;background:var(--color-nuit);color:var(--color-creme);text-decoration:none;padding:14px 22px;font:700 13px/1 var(--font-body);letter-spacing:.14em;text-transform:uppercase;border-radius:999px;transition:background .2s,color .2s;white-space:nowrap}
+.cta:hover{background:var(--color-rouge)}
+.rack__side{display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.rack__price{font:400 clamp(34px,3.6vw,56px)/.9 var(--font-display);color:var(--color-nuit);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rack__sizes{display:flex;gap:8px}
+.rack__sizes button{width:40px;height:40px;border-radius:50%;border:2px solid var(--color-nuit);background:transparent;color:var(--color-nuit);font:700 12px/1 var(--font-body);cursor:pointer;transition:background .2s,color .2s,transform .2s}
+.rack__sizes button:hover{transform:translateY(-2px)}
+.rack__sizes button[aria-checked="true"]{background:var(--color-nuit);color:var(--color-creme)}
+.rack__sizes.is-shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.rack__sizes button:disabled{opacity:.35;text-decoration:line-through;cursor:not-allowed;transform:none}
+.rack__stock{align-self:flex-end;padding:6px 12px;border-radius:999px;background:var(--color-nuit);color:var(--color-ocre);font:700 11px/1 var(--font-body);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}
+.rack__stock.is-urgent{background:var(--color-rouge);color:var(--color-creme)}
+#ajout{border:0;cursor:pointer;min-width:15em;justify-content:center}
+#ajout:disabled{opacity:.5;cursor:not-allowed}
+#ajout:disabled:hover{background:var(--color-nuit)}
+#ajout.is-done{background:var(--color-rouge)}
+
+/* ============ 3. MUR DE TÉLÉS ============ */
+.tvroom{position:relative;background:radial-gradient(120% 80% at 50% 30%,#2a1610 0%,var(--color-nuit) 70%);padding-top:clamp(56px,9vh,110px);overflow:hidden}
+.tvroom__head{text-align:center;padding-inline:var(--gutter)}
+.tvroom__head img{height:clamp(70px,10vw,140px);width:auto;margin:0 auto;transform:rotate(-6deg)}
+.tvroom__head p{margin:18px auto 0;max-width:46ch;font-size:clamp(14px,1.2vw,17px);opacity:.82;text-wrap:balance}
+.wall{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:clamp(34px,4.6vw,78px);gap:clamp(6px,.8vw,12px);
+  max-width:1500px;margin:clamp(36px,6vh,70px) auto 0;padding-inline:var(--gutter);align-items:end}
+.tv{position:relative;height:100%;border-radius:14px;padding:7% 7% 7% 7%;background:var(--tvc,#3a2a22);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.12),inset 0 -6px 12px rgba(0,0,0,.45),0 18px 30px rgba(0,0,0,.55);display:flex;gap:6%}
+.tv--side{padding-right:4%}
+.tv__screen{position:relative;flex:1;overflow:hidden;border-radius:14% / 18%;background:#050403;box-shadow:inset 0 0 0 3px rgba(0,0,0,.6),0 0 0 4px rgba(0,0,0,.35)}
+.tv__screen img,.tv__screen video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(1.25) contrast(1.08)}
+.tv__screen::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.65) 100%)}
+.tv__screen::after{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;background:linear-gradient(130deg,rgba(255,255,255,.16) 0%,transparent 35%);animation:flicker 4s steps(2) infinite}
+@keyframes flicker{50%{opacity:.75}}
+.tv__static{position:absolute;inset:-20%;z-index:2;background-image:var(--noise);background-size:160px;opacity:0;animation:noise .25s steps(4) infinite;mix-blend-mode:screen}
+.tv.is-switching .tv__static{opacity:1}
+.tv.is-switching img,.tv.is-switching video{filter:brightness(1.8) blur(1px)}
+@keyframes noise{25%{background-position:40px 60px}50%{background-position:-60px 20px}75%{background-position:10px -50px}}
+.tv__osd{position:absolute;top:8%;right:9%;z-index:5;font:400 clamp(9px,.9vw,14px)/1 var(--font-display);color:#9cff7a;letter-spacing:.06em;text-shadow:0 0 6px rgba(156,255,122,.7)}
+.tv__panel{width:16%;display:flex;flex-direction:column;align-items:center;gap:10%;padding-top:4%}
+.tv__knob{width:70%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9c7b0,#5c4637 70%);box-shadow:0 2px 3px rgba(0,0,0,.5)}
+.tv__grill{width:70%;flex:1;max-height:40%;background:repeating-linear-gradient(0deg,rgba(0,0,0,.45) 0 2px,transparent 2px 5px);border-radius:3px}
+.tv__ant{position:absolute;bottom:100%;left:50%;width:60%;height:70%;transform:translateX(-50%);pointer-events:none}
+.tv__ant::before,.tv__ant::after{content:"";position:absolute;bottom:0;left:50%;width:2px;height:100%;background:#8d7c6c;transform-origin:bottom}
+.tv__ant::before{transform:rotate(-32deg)}.tv__ant::after{transform:rotate(28deg)}
+/* placement en pile (12 colonnes) */
+.tv:nth-child(1){grid-column:1/4;grid-row:span 4;--tvc:#7a3b22}
+.tv:nth-child(2){grid-column:4/7;grid-row:span 3;--tvc:#d9cbb4}
+.tv:nth-child(3){grid-column:7/10;grid-row:span 5;--tvc:#1c1512}
+.tv:nth-child(4){grid-column:10/13;grid-row:span 4;--tvc:#b85a2c}
+.tv:nth-child(5){grid-column:1/3;grid-row:span 3;--tvc:#e4d6bf}
+.tv:nth-child(6){grid-column:3/6;grid-row:span 4;--tvc:#2a1c16}
+.tv:nth-child(7){grid-column:6/8;grid-row:span 3;--tvc:#f2a33a}
+.tv:nth-child(8){grid-column:8/11;grid-row:span 4;--tvc:#5a2a1e}
+.tv:nth-child(9){grid-column:11/13;grid-row:span 3;--tvc:#d4c4ab}
+.tv[style*="--tvc:#e"],.tv:nth-child(2),.tv:nth-child(5),.tv:nth-child(9){color:var(--color-nuit)}
+
+/* pellicule de mots */
+.film{position:relative;margin-top:clamp(48px,8vh,90px);background:#000;padding-block:26px;overflow:hidden}
+.film::before,.film::after{content:"";position:absolute;left:0;right:0;height:12px;
+  background:repeating-linear-gradient(90deg,transparent 0 14px,var(--color-creme) 14px 30px);opacity:.9;
+  -webkit-mask:linear-gradient(#000,#000);border-radius:2px}
+.film::before{top:7px}.film::after{bottom:7px}
+.film__track{display:flex;will-change:transform}
+.film__frame{flex:0 0 auto;min-width:clamp(200px,24vw,380px);height:clamp(112px,13.5vw,214px);padding-inline:.7em;display:grid;place-items:center;border-inline:3px solid #000;
+  background:#140d0a;font:400 clamp(30px,4.2vw,64px)/1 var(--font-display);text-transform:uppercase;letter-spacing:.01em;color:var(--color-creme)}
+.film__frame.is-red{background:var(--color-rouge);color:var(--color-nuit)}
+.film__frame.is-ocre{background:var(--color-ocre);color:var(--color-nuit)}
+
+/* footer */
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:20px;padding:40px var(--gutter) calc(40px + env(safe-area-inset-bottom,0px));background:var(--color-nuit);font-size:13px;letter-spacing:.04em}
+.foot img{height:56px;width:auto;transform:rotate(-5deg)}
+.foot p{margin:0;opacity:.7;max-width:52ch}
+
+/* ============ 4. TIROIR PANIER (<dialog>) — glisse depuis la droite ============ */
+.tiroir{translate:100% 0;transition:translate .45s cubic-bezier(.2,.8,.2,1),overlay .45s allow-discrete,display .45s allow-discrete}
+.tiroir[open]{translate:0 0}
+@starting-style{.tiroir[open]{translate:100% 0}}
+.tiroir::backdrop{opacity:0;transition:opacity .35s,overlay .45s allow-discrete,display .45s allow-discrete}
+.tiroir[open]::backdrop{opacity:1}
+@starting-style{.tiroir[open]::backdrop{opacity:0}}
+body:has(.tiroir[open]){overflow:hidden} /* sur body et pas html : sinon body devient un conteneur de scroll et casse le sticky */
+
+/* ---------- Mobile ---------- */
+@media (max-width:760px){
+  .hero__cols{grid-template-columns:repeat(2,1fr)}
+  .hero__col:nth-child(n+3){display:none}
+  .wall{grid-template-columns:repeat(6,1fr);grid-auto-rows:44px}
+  .tv:nth-child(n){grid-column:auto/span 3;grid-row:span 3}
+  .tv:nth-child(3){grid-column:1/-1;grid-row:span 5}
+  .tv:nth-child(n+8){display:none}
+  .tv__panel{display:none}
+  .rack__head{padding-top:calc(env(safe-area-inset-top,0px) + 76px)}
+  .rack__foot{flex-direction:column;align-items:stretch;gap:14px}
+  .rack__side{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px}
+  .rack__stock{grid-column:1/-1;justify-self:start}
+  .rack__price{font-size:34px}
+  .rack__sizes{justify-content:flex-end}
+  .rack__sizes button{width:38px;height:38px}
+  #ajout{grid-column:1/-1;min-width:0;padding-block:16px}
+  .rack__hint{display:none}
+  .rack__dots{top:30%;transform:none}
+  .slide{top:46%;width:92vw}
+  .rack__name{font-size:23vw}
+  .rack__hint{max-width:22ch}
+}
+@media (prefers-reduced-motion:reduce){
+  .marquee__track{animation-duration:120s}
+  .hero__col video,.hero__logo{animation:none}
+  .tv__screen::after,.tv__static{animation:none}
+  .tee__inner{animation:none}
+  .slide,.rack__name{transition-duration:.01s}
+  .tiroir,.tiroir::backdrop{transition-duration:.01s}
+  .intro-on .intro{transition-duration:.01s}
+  .intro__w>span{animation:none;translate:none}
+}

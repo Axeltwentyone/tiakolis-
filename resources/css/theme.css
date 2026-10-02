@@ -1,0 +1,13 @@
+/* Palette et typo de la marque — exposées en utilitaires Tailwind (bg-nuit, text-rouge, font-display…) */
+@theme static {
+  --color-nuit: #0d0907;   /* noir chaud, fond hero et télés */
+  --color-terre: #c4743c;  /* orange terre cuite des planches */
+  --color-rouge: #e3342a;  /* rouge des prints */
+  --color-creme: #f6efe4;  /* blanc t-shirt */
+  --color-ocre: #f2a33a;   /* jaune de la palette Legacy */
+  --color-brun: #4a2218;   /* brun profond */
+  --font-display: "Anton", "Impact", "Arial Narrow", sans-serif;
+  --font-body: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --animate-bump: bump .45s cubic-bezier(.3,1.6,.5,1);
+  @keyframes bump { 40% { transform: scale(1.45); } }
+}
