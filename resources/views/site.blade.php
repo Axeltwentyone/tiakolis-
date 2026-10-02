@@ -30,6 +30,7 @@
     <figure class="hero__col" style="margin:0"><video src="/assets/shoot-6572.mp4" poster="/assets/shoot-6572.jpg" autoplay muted loop playsinline preload="auto"></video><figcaption>Blanc · Rouge</figcaption></figure>
     <figure class="hero__col" style="margin:0"><video src="/assets/shoot-6573.mp4" poster="/assets/shoot-6573.jpg" autoplay muted loop playsinline preload="auto"></video><figcaption>Abidjan</figcaption></figure>
   </div>
+  <a href="#collection" class="hero__suite" aria-label="Voir la collection"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v15M5 12l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
   <div class="marquee" aria-label="Fait par nous et pour nous. Parce que notre voix compte. Monétisez les clips afro francophones.">
     <div class="marquee__track" aria-hidden="true" data-repeat>
       <span>Fait par nous et pour nous</span><span>Parce que notre voix compte</span><span>Monétisez les clips afro francophones</span>
@@ -44,6 +45,8 @@
     <div class="rack__head">
       <p>Tiakolisé et fière</p>
       <p>Fait par nous, pour nous !</p>
+      <!-- repère de scroll : sinon, sur mobile, on ne devine pas qu'il faut défiler pour changer de pièce -->
+      <p class="rack__scroll" id="scroll-hint" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v15M5 12l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="scroll-texte">Défile pour la pièce suivante</span><b id="scroll-num"></b></p>
     </div>
     <div class="rack__names" id="names" aria-hidden="true"></div>
     <div class="rack__slides" id="slides"></div>

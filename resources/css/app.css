@@ -50,6 +50,11 @@
 .hero__col:nth-child(3) video{animation-delay:.24s}
 .hero__col:nth-child(4) video{animation-delay:.36s}
 @keyframes colIn{from{transform:scale(1.15);filter:brightness(.2)}to{transform:none;filter:none}}
+.hero{position:relative}
+/* flèche « voir la collection » en bas du premier écran */
+.hero__suite{position:absolute;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:3;display:grid;place-items:center;width:52px;height:52px;margin-left:-26px;border-radius:50%;background:var(--color-creme);color:var(--color-nuit);box-shadow:0 10px 30px rgba(0,0,0,.45);animation:rebond 1.6s ease-in-out infinite}
+.hero__suite svg{width:24px;height:24px}
+@keyframes rebond{0%,100%{translate:0 0}50%{translate:0 8px}}
 .hero__col figcaption{position:absolute;left:10px;bottom:8px;font:600 11px/1 var(--font-body);letter-spacing:.14em;text-transform:uppercase;color:var(--color-creme);opacity:.75;mix-blend-mode:difference}
 .hero .marquee{padding:18px 0 calc(18px + env(safe-area-inset-bottom,0px));font-size:clamp(15px,1.5vw,22px)}
 .hero h1{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -61,6 +66,12 @@
 .rack__head{position:absolute;inset:0 0 auto 0;text-align:center;padding-top:clamp(24px,4.5vh,48px);z-index:4;pointer-events:none}
 .rack__head p{margin:0;font-style:italic;font-weight:500;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(15px,1.5vw,21px)}
 .rack__head p+p{margin-top:clamp(8px,1.6vh,16px);transform:rotate(1.1deg)}
+/* pastille « fais défiler » : la pièce change au scroll */
+.rack__head .rack__scroll{display:inline-flex;align-items:center;gap:8px;margin-top:clamp(12px,2vh,20px);padding:8px 14px 8px 10px;border-radius:999px;background:var(--color-nuit);color:var(--color-creme);
+  font:700 11px/1.2 var(--font-body);font-style:normal;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;transform:none;transition:opacity .3s}
+.rack__scroll svg{width:16px;height:16px;flex:none;color:var(--color-ocre);animation:rebond 1.4s ease-in-out infinite}
+.rack__scroll b{padding-left:8px;border-left:1px solid rgba(246,239,228,.25);color:var(--color-ocre);font-variant-numeric:tabular-nums}
+.rack__scroll.is-fin svg{display:none}
 /* nom géant derrière le t-shirt */
 .rack__names{position:absolute;inset:0;display:grid;place-items:center;z-index:1;pointer-events:none}
 .rack__name{grid-area:1/1;font:400 clamp(72px,17vw,300px)/.82 var(--font-display);text-transform:uppercase;text-align:center;color:var(--color-nuit);opacity:0;
@@ -199,6 +210,7 @@ body:has(.tiroir[open]){overflow:hidden} /* sur body et pas html : sinon body de
 @media (prefers-reduced-motion:reduce){
   .marquee__track{animation-duration:120s}
   .hero__col video,.hero__logo{animation:none}
+  .hero__suite,.rack__scroll svg{animation:none}
   .tv__screen::after,.tv__static{animation:none}
   .tee__inner{animation:none}
   .slide,.rack__name{transition-duration:.01s}

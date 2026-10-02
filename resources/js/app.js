@@ -95,7 +95,8 @@ const collection = (function(){
         names=document.getElementById("names"), dots=document.getElementById("dots"),
         count=document.getElementById("count"), detail=document.getElementById("detail"), hint=document.getElementById("hint"),
         prix=document.getElementById("prix"), stock=document.getElementById("stock"), sizes=document.getElementById("sizes"),
-        ajout=document.getElementById("ajout"), live=document.getElementById("panier-live"), nb=document.getElementById("panier-nb");
+        ajout=document.getElementById("ajout"), live=document.getElementById("panier-live"), nb=document.getElementById("panier-nb"),
+        scrollHint=document.getElementById("scroll-hint"), scrollTexte=document.getElementById("scroll-texte"), scrollNum=document.getElementById("scroll-num");
   const touch=matchMedia("(hover: none)").matches;
   if(touch) hint.textContent="Touche la pièce pour voir le dos";
   let S=[], cur=-1, taille=null, t0;
@@ -150,6 +151,11 @@ const collection = (function(){
     const p=PIECES[i];
     count.innerHTML=`${String(i+1).padStart(2,"0")}<small> / ${String(PIECES.length).padStart(2,"0")}</small>`;
     detail.textContent=`${p.type} · ${p.nom} · ${p.couleur}`;
+    // repère de scroll : « pièce suivante » jusqu'à la dernière, puis rappel du retournement
+    const fin=i===PIECES.length-1;
+    scrollHint.classList.toggle("is-fin",fin);
+    scrollTexte.textContent= fin ? (touch?"Touche le t-shirt : le dos":"Survole le t-shirt : le dos") : "Défile pour la pièce suivante";
+    scrollNum.textContent=`${i+1}/${PIECES.length}`;
     prix.textContent=fcfa(p.prix);
     majStock();
   }
