@@ -1,0 +1,5 @@
+{{-- icônes : onglet du navigateur, écran d'accueil du téléphone --}}
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">

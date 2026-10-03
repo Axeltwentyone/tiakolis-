@@ -3,7 +3,35 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Tiakolisé et fière</title>
+<title>Tiakolisé et fière × Mélo Décalé · Précommande</title>
+@php
+    $partage = [
+        'titre' => 'Tiakolisé et fière × Mélo Décalé',
+        'texte' => 'T-shirts oversize en série limitée. Fait par nous, pour nous : monétisez les clips afro francophones. Précommande, livraison Yango à Abidjan, paiement Wave.',
+        'image' => url('/og-image.jpg'),
+    ];
+@endphp
+<meta name="description" content="{{ $partage['texte'] }}">
+<meta name="theme-color" content="#0d0907">
+<link rel="canonical" href="{{ url('/') }}">
+{{-- aperçu du lien partagé (WhatsApp, Instagram, Facebook, X, iMessage…) --}}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tiakolisé et fière">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:url" content="{{ url('/') }}">
+<meta property="og:title" content="{{ $partage['titre'] }}">
+<meta property="og:description" content="{{ $partage['texte'] }}">
+<meta property="og:image" content="{{ $partage['image'] }}">
+<meta property="og:image:secure_url" content="{{ $partage['image'] }}">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Deux personnes portent le t-shirt Warning : Monétisez les clips afro francophones">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $partage['titre'] }}">
+<meta name="twitter:description" content="{{ $partage['texte'] }}">
+<meta name="twitter:image" content="{{ $partage['image'] }}">
+@include('partials.icones')
 <!-- écran de chargement : une seule fois par visite, et seulement si JS est actif -->
 <script>try{if(!sessionStorage.getItem("tk-intro"))document.documentElement.classList.add("intro-on")}catch{}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
