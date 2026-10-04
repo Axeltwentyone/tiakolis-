@@ -98,7 +98,8 @@ const collection = (function(){
         ajout=document.getElementById("ajout"), live=document.getElementById("panier-live"), nb=document.getElementById("panier-nb"),
         scrollHint=document.getElementById("scroll-hint"), scrollTexte=document.getElementById("scroll-texte"), scrollNum=document.getElementById("scroll-num");
   const touch=matchMedia("(hover: none)").matches;
-  if(touch) hint.textContent="Touche la pièce pour voir le dos";
+  const HINT=touch?"↻ Touche le t-shirt pour voir le dos":hint.textContent;
+  hint.textContent=HINT;
   // mobile : carrousel horizontal (défile tout seul de droite à gauche, flèches, glisser) ; ordinateur : la pièce change au scroll
   const ecranMobile=matchMedia("(max-width: 760px)");
   let carrousel=ecranMobile.matches;
@@ -113,7 +114,12 @@ const collection = (function(){
       f.innerHTML=`<button class="tee" type="button" aria-label="Retourner le t-shirt ${p.nom} ${p.couleur}">
         <span class="tee__inner"><span class="tee__face"><img src="${p.face}" alt="${p.nom} ${p.couleur}, face"></span>
         <span class="tee__face tee__face--dos"><img src="${p.dos}" alt="${p.nom} ${p.couleur}, dos : Warning, monétisez les clips afro francophones"></span></span></button>`;
-      f.querySelector(".tee").addEventListener("click",e=>e.currentTarget.classList.toggle("is-flipped"));
+      f.querySelector(".tee").addEventListener("click",e=>{
+        const dos=e.currentTarget.classList.toggle("is-flipped"); // 1er toucher : le dos, 2e : la face
+        if(!carrousel) return;
+        if(dos) hint.textContent="↻ Touche encore pour voir la face";
+        else hint.classList.add("is-compris"); // aller-retour fait : l'étiquette s'efface
+      });
       slides.appendChild(f);
       const n=document.createElement("div"); n.className="rack__name"; n.textContent=p.nom; names.appendChild(n);
       const d=document.createElement("span"); dots.appendChild(d);
@@ -160,6 +166,7 @@ const collection = (function(){
       for(const el of [o.f,o.n]){ el.classList.toggle("is-active",k===i); el.classList.toggle("is-before",k!==i && avant); }
       o.d.classList.toggle("is-active",k===i);
       if(k!==i) o.f.querySelector(".tee").classList.remove("is-flipped");
+      if(k!==i && carrousel && !hint.classList.contains("is-compris")) hint.textContent=HINT; // nouvelle pièce, de face
     });
     const p=PIECES[i];
     count.innerHTML=`${String(i+1).padStart(2,"0")}<small> / ${String(PIECES.length).padStart(2,"0")}</small>`;
@@ -184,11 +191,12 @@ const collection = (function(){
 
   /* ----- carrousel mobile ----- */
   // mobile : les points passent en bas à droite, sur la ligne du compteur (dans le pied) ; ordinateur : à droite de l'écran
-  const foot=section.querySelector(".rack__foot"), placeOrigine=dots.nextElementSibling;
+  // l'indication « Touche le t-shirt » devient une étiquette posée sur le t-shirt
+  const foot=section.querySelector(".rack__foot"), placeOrigine=dots.nextElementSibling, info=hint.parentElement;
   function placeDots(){
     section.classList.toggle("rack--carrousel",carrousel);
     section.style.height=carrousel?"":(N()+1)*100+"vh";
-    if(carrousel) foot.prepend(dots); else placeOrigine.before(dots);
+    if(carrousel){ foot.prepend(dots); slides.after(hint); } else { placeOrigine.before(dots); info.append(hint); }
   }
   const N=()=>PIECES.length;
   const suivante=()=>set((cur+1)%N(),1), precedente=()=>set((cur-1+N())%N(),-1);
