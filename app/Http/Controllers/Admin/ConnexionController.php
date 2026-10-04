@@ -25,7 +25,6 @@ class ConnexionController extends Controller
             ['email.*' => 'Indique ton e-mail.', 'password.*' => 'Indique ton mot de passe.'],
         );
 
-        // 5 essais par minute pour un même e-mail depuis une même adresse IP
         $cle = 'connexion:'.Str::lower($identifiants['email']).'|'.$request->ip();
         if (RateLimiter::tooManyAttempts($cle, 5)) {
             throw ValidationException::withMessages(['email' => 'Trop d\'essais. Réessaie dans '.RateLimiter::availableIn($cle).' secondes.']);

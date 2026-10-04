@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Tiakolisé et fière × Mélo Décalé · Précommande</title>
+<title>Tiakolisé et fière Précommande</title>
 @php
     $partage = [
         'titre' => 'Tiakolisé et fière × Mélo Décalé',
@@ -104,8 +104,8 @@
 <!-- ============ 3. MUR DE TÉLÉS — images du clip Mélo Décalé ============ -->
 <section class="tvroom" id="clip" aria-label="Mélo Décalé, le clip">
   <div class="tvroom__head">
-    <img src="/assets/logo-melo.png" alt="Mélo Décalé">
-    <p>Un titre, une culture, une économie. Chaque pièce porte le même message : les clips afro francophones méritent d'être payés à leur juste valeur.</p>
+    <img src="/assets/logo-tiakolise.png" alt="Mélo Décalé">
+    <p>Plus qu’une passion, une identité, un état d’esprit et une communauté réunie par la musique et l’univers de Tiakola. Être Tiakolisé, c’est vibrer au même rythme, partager la même énergie et être fier de faire partie du mouvement. 🇨🇮🌍</p>
   </div>
   <div class="wall" id="wall" aria-hidden="true"></div>
 
@@ -117,8 +117,7 @@
 </main>
 
 <footer class="foot">
-  <img src="/assets/logo-melo-white.png" alt="Mélo Décalé">
-  <p>Pièces uniques en série limitée, en soutien à Tiakola. Tiakolisé et fière × Mélo Décalé.</p>
+  <p>Pièces uniques en série limitée, en soutien à Tiakola.</p>
   <button type="button" class="cta" data-ouvre-panier style="background:var(--color-rouge);border:0;cursor:pointer">Précommander</button>
 </footer>
 
