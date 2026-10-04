@@ -49,7 +49,7 @@
 <!-- ============ 1. HERO — la fille qui porte le t-shirt ============ -->
 <header class="hero" id="top">
   <div class="hero__top">
-    <img class="hero__logo" src="/assets/logo-tiakolise.png" alt="tiakolisé et fière">
+    <img class="hero__logo" src="/assets/logotiako.png" alt="tiakolisé et fière">
   </div>
   <h1>Tiakolisé et fière — Mélo Décalé</h1>
   <div class="hero__cols">
@@ -71,7 +71,7 @@
 <section class="rack" id="collection" aria-label="La collection">
   <div class="rack__stage">
     <div class="rack__head">
-      <p>Tiakolisé et fière</p>
+      <p>Tiakolisé et fièrs</p>
       <p>Fait par nous, pour nous !</p>
       <!-- repère de scroll : sinon, sur mobile, on ne devine pas qu'il faut défiler pour changer de pièce -->
       <p class="rack__scroll" id="scroll-hint" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v15M5 12l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="scroll-texte">Défile pour la pièce suivante</span><b id="scroll-num"></b></p>
@@ -79,6 +79,9 @@
     <div class="rack__names" id="names" aria-hidden="true"></div>
     <div class="rack__slides" id="slides"></div>
     <div class="rack__dots" id="dots" aria-hidden="true"></div>
+    <!-- flèches du carrousel (mobile uniquement) -->
+    <button type="button" class="rack__fleche rack__fleche--prec" id="precedente" aria-label="Pièce précédente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button type="button" class="rack__fleche rack__fleche--suiv" id="suivante" aria-label="Pièce suivante"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <div class="rack__foot">
       <div class="rack__info">
         <span class="rack__count" id="count"></span>
@@ -104,7 +107,7 @@
 <!-- ============ 3. MUR DE TÉLÉS — images du clip Mélo Décalé ============ -->
 <section class="tvroom" id="clip" aria-label="Mélo Décalé, le clip">
   <div class="tvroom__head">
-    <img src="/assets/logo-tiakolise.png" alt="Mélo Décalé">
+    <img src="/assets/logotiako.png" alt="Mélo Décalé">
     <p>Plus qu’une passion, une identité, un état d’esprit et une communauté réunie par la musique et l’univers de Tiakola. Être Tiakolisé, c’est vibrer au même rythme, partager la même énergie et être fier de faire partie du mouvement. 🇨🇮🌍</p>
   </div>
   <div class="wall" id="wall" aria-hidden="true"></div>

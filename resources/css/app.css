@@ -72,6 +72,29 @@
 .rack__scroll svg{width:16px;height:16px;flex:none;color:var(--color-ocre);animation:rebond 1.4s ease-in-out infinite}
 .rack__scroll b{padding-left:8px;border-left:1px solid rgba(246,239,228,.25);color:var(--color-ocre);font-variant-numeric:tabular-nums}
 .rack__scroll.is-fin svg{display:none}
+.rack__fleche{display:none}
+/* ---------- Mobile : carrousel horizontal, les pièces arrivent par la droite ---------- */
+.rack--carrousel{height:100vh;height:100svh}
+.rack--carrousel .rack__stage{position:relative}
+.rack--carrousel .slide{transform:translate(-50%,-50%) translateX(105vw) rotate(5deg);transition:transform .75s cubic-bezier(.7,0,.2,1),opacity .45s}
+.rack--carrousel .slide.is-before{transform:translate(-50%,-50%) translateX(-105vw) rotate(-5deg)}
+.rack--carrousel .slide.is-active{transform:translate(-50%,-50%)}
+.rack--carrousel .rack__name{transform:translateX(60vw)}
+.rack--carrousel .rack__name.is-before{transform:translateX(-60vw)}
+.rack--carrousel .rack__name.is-active{transform:none}
+.rack--carrousel .rack__fleche{position:absolute;top:46%;z-index:5;display:grid;place-items:center;width:44px;height:44px;margin-top:-22px;border:0;border-radius:50%;
+  background:var(--color-creme);color:var(--color-nuit);box-shadow:0 8px 20px rgba(60,20,5,.35);cursor:pointer;transition:transform .2s}
+.rack--carrousel .rack__fleche:active{transform:scale(.9)}
+.rack--carrousel .rack__fleche svg{width:22px;height:22px}
+.rack--carrousel .rack__fleche--prec{left:10px}
+.rack--carrousel .rack__fleche--suiv{right:10px}
+.rack--carrousel .rack__scroll{display:none} /* flèches + défilement auto : pas besoin d'expliquer */
+.rack--carrousel .rack__dots{top:clamp(12px,3vw,20px);right:0;transform:none;display:flex}
+.rack--carrousel .rack__dots{align-items:center;gap:10px}
+.rack--carrousel .rack__dots span{cursor:pointer;transition:width .3s,background .3s}
+.rack--carrousel .rack__dots span.is-active{transform:none;width:24px;border-radius:999px} /* pièce affichée : point allongé */
+.rack--carrousel .rack__scroll svg{rotate:90deg;animation-name:rebondX}
+@keyframes rebondX{0%,100%{translate:0 0}50%{translate:-5px 0}}
 /* nom géant derrière le t-shirt */
 .rack__names{position:absolute;inset:0;display:grid;place-items:center;z-index:1;pointer-events:none}
 .rack__name{grid-area:1/1;font:400 clamp(72px,17vw,300px)/.82 var(--font-display);text-transform:uppercase;text-align:center;color:var(--color-nuit);opacity:0;

@@ -99,13 +99,16 @@ const collection = (function(){
         scrollHint=document.getElementById("scroll-hint"), scrollTexte=document.getElementById("scroll-texte"), scrollNum=document.getElementById("scroll-num");
   const touch=matchMedia("(hover: none)").matches;
   if(touch) hint.textContent="Touche la pièce pour voir le dos";
+  // mobile : carrousel horizontal (défile tout seul de droite à gauche, flèches, glisser) ; ordinateur : la pièce change au scroll
+  const ecranMobile=matchMedia("(max-width: 760px)");
+  let carrousel=ecranMobile.matches;
   let S=[], cur=-1, taille=null, t0;
   const LABEL="Ajouter au panier";
 
   function construit(){
     slides.innerHTML=names.innerHTML=dots.innerHTML="";
-    section.style.height=(PIECES.length+1)*100+"vh";
-    S=PIECES.map(p=>{
+    placeDots();
+    S=PIECES.map((p,k)=>{
       const f=document.createElement("figure"); f.className="slide";
       f.innerHTML=`<button class="tee" type="button" aria-label="Retourner le t-shirt ${p.nom} ${p.couleur}">
         <span class="tee__inner"><span class="tee__face"><img src="${p.face}" alt="${p.nom} ${p.couleur}, face"></span>
@@ -114,10 +117,11 @@ const collection = (function(){
       slides.appendChild(f);
       const n=document.createElement("div"); n.className="rack__name"; n.textContent=p.nom; names.appendChild(n);
       const d=document.createElement("span"); dots.appendChild(d);
+      d.addEventListener("click",()=>{ if(!carrousel || k===cur) return; geste(); set(k,k>cur?1:-1); });
       return {f,n,d};
     });
     sizes.innerHTML=TAILLES.map(t=>`<button type="button" role="radio" aria-checked="false" data-t="${t}">${t}</button>`).join("");
-    cur=-1; onScroll();
+    cur=-1; if(carrousel) set(0); else onScroll();
   }
 
   /** tailles épuisées barrées, badge de stock, bouton « Épuisé » */
@@ -141,10 +145,19 @@ const collection = (function(){
     if(!ajout.classList.contains("is-done")) ajout.textContent=total===0?"Épuisé":LABEL;
   }
 
-  function set(i){
+  /** dir : +1 = pièce suivante (arrive par la droite), -1 = précédente (arrive par la gauche), 0 = scroll (ordinateur) */
+  function set(i,dir=0){
     if(i===cur) return; cur=i;
+    if(carrousel && dir){
+      // la pièce qui arrive est d'abord placée, sans animation, du côté d'où elle doit entrer
+      for(const el of [S[i].f,S[i].n]){ el.style.transition="none"; el.classList.remove("is-active"); el.classList.toggle("is-before",dir<0); }
+      void S[i].f.offsetWidth;
+      for(const el of [S[i].f,S[i].n]) el.style.transition="";
+    }
     S.forEach((o,k)=>{
-      for(const el of [o.f,o.n]){ el.classList.toggle("is-active",k===i); el.classList.toggle("is-before",k<i); }
+      // carrousel : toutes les autres pièces sortent du côté opposé ; scroll : celles d'avant au-dessus, celles d'après en dessous
+      const avant = carrousel ? (dir ? dir>0 : k<i) : k<i;
+      for(const el of [o.f,o.n]){ el.classList.toggle("is-active",k===i); el.classList.toggle("is-before",k!==i && avant); }
       o.d.classList.toggle("is-active",k===i);
       if(k!==i) o.f.querySelector(".tee").classList.remove("is-flipped");
     });
@@ -153,23 +166,63 @@ const collection = (function(){
     detail.textContent=`${p.type} · ${p.nom} · ${p.couleur}`;
     // repère de scroll : « pièce suivante » jusqu'à la dernière, puis rappel du retournement
     const fin=i===PIECES.length-1;
-    scrollHint.classList.toggle("is-fin",fin);
-    scrollTexte.textContent= fin ? (touch?"Touche le t-shirt : le dos":"Survole le t-shirt : le dos") : "Défile pour la pièce suivante";
+    scrollTexte.textContent= carrousel
+      ? (touch?"Glisse ou touche les flèches":"Clique sur les flèches")
+      : fin ? (touch?"Touche le t-shirt : le dos":"Survole le t-shirt : le dos") : "Défile pour la pièce suivante";
+    scrollHint.classList.toggle("is-fin",fin && !carrousel);
     scrollNum.textContent=`${i+1}/${PIECES.length}`;
     prix.textContent=fcfa(p.prix);
     majStock();
   }
   function onScroll(){
-    if(!PIECES.length) return;
+    if(!PIECES.length || carrousel) return;
     const r=section.getBoundingClientRect(), span=section.offsetHeight-innerHeight;
     const prog=Math.min(.9999,Math.max(0,-r.top/span));
     set(Math.floor(prog*PIECES.length));
   }
   addEventListener("scroll",onScroll,{passive:true}); addEventListener("resize",onScroll);
 
+  /* ----- carrousel mobile ----- */
+  // mobile : les points passent en bas à droite, sur la ligne du compteur (dans le pied) ; ordinateur : à droite de l'écran
+  const foot=section.querySelector(".rack__foot"), placeOrigine=dots.nextElementSibling;
+  function placeDots(){
+    section.classList.toggle("rack--carrousel",carrousel);
+    section.style.height=carrousel?"":(N()+1)*100+"vh";
+    if(carrousel) foot.prepend(dots); else placeOrigine.before(dots);
+  }
+  const N=()=>PIECES.length;
+  const suivante=()=>set((cur+1)%N(),1), precedente=()=>set((cur-1+N())%N(),-1);
+  // défilement auto : en pause quand le client agit (8 s), retourne un t-shirt, ouvre le panier ou ne voit pas la collection
+  let dernierGeste=0, visible=false;
+  const geste=()=>{ dernierGeste=Date.now(); };
+  new IntersectionObserver(([e])=>{ visible=e.isIntersecting; },{threshold:.6}).observe(section);
+  if(!reduce) setInterval(()=>{
+    if(!carrousel || !N() || !visible || document.hidden || document.getElementById("tiroir").open) return;
+    if(Date.now()-dernierGeste<8000 || S[cur]?.f.querySelector(".tee").classList.contains("is-flipped")) return;
+    suivante();
+  },4500);
+  document.getElementById("suivante").addEventListener("click",()=>{ geste(); suivante(); });
+  document.getElementById("precedente").addEventListener("click",()=>{ geste(); precedente(); });
+  // glisser du doigt (horizontalement) pour changer de pièce
+  const stage=section.querySelector(".rack__stage");
+  let x0=null, y0=0;
+  stage.addEventListener("touchstart",e=>{ geste(); if(!carrousel) return; x0=e.touches[0].clientX; y0=e.touches[0].clientY; },{passive:true});
+  stage.addEventListener("touchend",e=>{
+    if(x0===null) return;
+    const dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0; x0=null;
+    if(Math.abs(dx)>45 && Math.abs(dx)>Math.abs(dy)*1.3){ geste(); dx<0?suivante():precedente(); }
+  },{passive:true});
+  // passage ordinateur ↔ mobile (rotation, fenêtre redimensionnée)
+  ecranMobile.addEventListener("change",e=>{
+    carrousel=e.matches; if(!N()) return;
+    placeDots();
+    const i=Math.max(0,cur); cur=-1; if(carrousel) set(i); else onScroll();
+  });
+
   // tailles : la taille choisie reste la même d'une pièce à l'autre (si elle y est disponible)
   sizes.addEventListener("click",e=>{
     const b=e.target.closest("button"); if(!b || b.disabled) return;
+    geste();
     taille=b.dataset.t; majStock();
   });
   ajout.addEventListener("click",()=>{
