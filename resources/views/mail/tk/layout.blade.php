@@ -2,7 +2,7 @@
      Tout est en styles en ligne et en tableaux : c'est ce que Gmail, Outlook et Apple Mail lisent le mieux. --}}
 @php
     $nuit = '#0d0907'; $creme = '#f6efe4'; $rouge = '#e3342a'; $ocre = '#f2a33a';
-    $logo = isset($message) ? $message->embed(public_path('assets/logo-tiakolise.png')) : asset('assets/logo-tiakolise.png');
+    $logo = isset($message) ? $message->embed(public_path('assets/logotiako.png')) : asset('assets/logotiako.png');
 @endphp
 <!doctype html>
 <html lang="fr">
