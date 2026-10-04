@@ -108,7 +108,9 @@
 <section class="tvroom" id="clip" aria-label="Mélo Décalé, le clip">
   <div class="tvroom__head">
     <img src="/assets/logotiako.png" alt="Mélo Décalé">
-    <p>Plus qu’une passion, une identité, un état d’esprit et une communauté réunie par la musique et l’univers de Tiakola. Être Tiakolisé, c’est vibrer au même rythme, partager la même énergie et être fier de faire partie du mouvement. 🇨🇮🌍</p>
+    <p class="tvroom__accroche">Plus qu’une passion</p>
+    <p>Une identité, un état d’esprit et une communauté réunie par la musique et l’univers de Tiakola.</p>
+    <p class="tvroom__fier"><strong>Être Tiakolisé</strong>, c’est vibrer au même rythme, partager la même énergie et être fier de faire partie du mouvement. 🇨🇮🌍</p>
   </div>
   <div class="wall" id="wall" aria-hidden="true"></div>
 
@@ -120,6 +122,7 @@
 </main>
 
 <footer class="foot">
+    <img src="/assets/logotiako.png" alt="Mélo Décalé">
   <p>Pièces uniques en série limitée, en soutien à Tiakola.</p>
   <button type="button" class="cta" data-ouvre-panier style="background:var(--color-rouge);border:0;cursor:pointer">Précommander</button>
 </footer>
