@@ -41,7 +41,7 @@
       <p class="display" style="margin:0;font-family:Anton,Impact,'Arial Narrow Bold',sans-serif;font-size:20px;line-height:1.15;letter-spacing:.02em;text-transform:uppercase;color:{{ $creme }};">
         <span style="color:{{ $ocre }};">Monétisez</span> les clips <span style="color:{{ $rouge }};">afro</span> francophones
       </p>
-      <p style="margin:12px 0 0;font-family:Archivo,'Helvetica Neue',Arial,sans-serif;font-size:12px;color:#a8998a;">Tiakolisé et fière × Mélo Décalé · Abidjan</p>
+      <p style="margin:12px 0 0;font-family:Archivo,'Helvetica Neue',Arial,sans-serif;font-size:12px;color:#a8998a;">Tiakolisé et fière · Abidjan</p>
     </td></tr>
   </table>
 </td></tr>
