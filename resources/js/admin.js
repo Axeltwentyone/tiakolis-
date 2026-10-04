@@ -22,6 +22,16 @@ document.querySelectorAll("[data-photo]").forEach(input => input.addEventListene
   img.nextElementSibling?.classList.remove("opacity-100!");
 }));
 
+// Photos du site : nom du fichier choisi + aperçu immédiat (photo ou vidéo)
+document.querySelectorAll("input[type=file]").forEach(inp => inp.addEventListener("change", () => {
+  const nom = inp.closest("label")?.querySelector("[data-nom]"), f = inp.files[0];
+  if (nom) nom.textContent = !f ? nom.dataset.defaut : inp.files.length > 1 ? `${inp.files.length} fichiers choisis` : f.name;
+  const cible = inp.dataset.fichier && document.getElementById(inp.dataset.fichier);
+  if (!cible || !f) return;
+  const url = URL.createObjectURL(f);
+  cible.innerHTML = f.type.startsWith("video/") ? `<video src="${url}" autoplay muted loop playsinline></video>` : `<img src="${url}" alt="">`;
+}));
+
 // nouvelle pièce : l'identifiant se remplit tout seul à partir du nom et de la couleur
 const form = document.querySelector("[data-piece-form][data-nouvelle]");
 if (form) {

@@ -13,8 +13,9 @@ const stockTotal = p => TAILLES.reduce((s,t)=>s+stockDe(p,t),0);
 
 /* Écrans des télés : remplacer par des captures du clip « Mélo Décalé » (images .jpg ou vidéos .mp4).
    En attendant, ce sont des images du shooting. */
-const CLIP_SOURCES = Array.from({length:14},(_,i)=>`/assets/tv/still-${String(i+1).padStart(2,"0")}.jpg`);
-const TV_VIDEOS = ["/assets/shoot-6569.mp4","/assets/shoot-6570.mp4"]; // télés qui jouent en vidéo
+// gérés dans le back office (« Photos du site ») et fournis par la page (window.MEDIAS)
+const CLIP_SOURCES = window.MEDIAS?.tv?.length ? window.MEDIAS.tv : Array.from({length:14},(_,i)=>`/assets/tv/still-${String(i+1).padStart(2,"0")}.jpg`);
+const TV_VIDEOS = window.MEDIAS?.tvVideos?.length ? window.MEDIAS.tvVideos : [{src:"/assets/shoot-6569.mp4",poster:"/assets/shoot-6569.jpg"},{src:"/assets/shoot-6570.mp4",poster:"/assets/shoot-6570.jpg"}]; // télés qui jouent en vidéo
 const FILM_WORDS = ["Mélo","Décalé","Fait","par","nous","pour","nous","Parce","que","notre","voix","compte","Monétisez","les","clips","Afro","Francophones"];
 const RED = new Set(["Décalé","Afro","voix"]), OCRE = new Set(["Monétisez"]);
 
@@ -452,7 +453,7 @@ catalogue.charge().catch(()=>collection.erreur());
   for(let i=0;i<N;i++){
     const tv=document.createElement("div"); tv.className="tv"+(withPanel.includes(i)?" tv--side":"");
     const vid = i===2 ? TV_VIDEOS[0] : i===6 ? TV_VIDEOS[1] : null;
-    const media = vid ? `<video src="${vid}" poster="${vid.replace(".mp4",".jpg")}" autoplay muted loop playsinline></video>` : `<img src="${next()}" alt="" loading="lazy">`;
+    const media = vid ? `<video src="${vid.src}" ${vid.poster?`poster="${vid.poster}"`:""} autoplay muted loop playsinline></video>` : `<img src="${next()}" alt="" loading="lazy">`;
     tv.innerHTML = (withAnt.includes(i)?'<span class="tv__ant"></span>':'') +
       `<div class="tv__screen">${media}<span class="tv__static"></span><span class="tv__osd">CH ${String(i+2).padStart(2,"0")}</span></div>` +
       (withPanel.includes(i)?'<div class="tv__panel"><span class="tv__knob"></span><span class="tv__knob"></span><span class="tv__grill"></span></div>':'');

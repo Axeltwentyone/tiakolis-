@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ConnexionController;
 use App\Http\Controllers\Admin\PieceController;
 use App\Http\Controllers\Admin\PrecommandeController;
+use App\Http\Controllers\Admin\SiteController;
 use App\Http\Controllers\Admin\TableauController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +46,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         }
 
         Route::resource('pieces', PieceController::class)->except('show')->parameters(['pieces' => 'produit']);
+        Route::get('site', [SiteController::class, 'index'])->name('site');
+        Route::post('site/tv', [SiteController::class, 'ajouterTv'])->name('site.tv');
+        Route::put('site/{media}', [SiteController::class, 'remplacer'])->name('site.remplacer');
+        Route::delete('site/{media}', [SiteController::class, 'supprimer'])->name('site.supprimer');
         Route::patch('pieces/{produit}/visibilite', [PieceController::class, 'visibilite'])->name('pieces.visibilite');
     });
 });

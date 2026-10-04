@@ -5,10 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Tiakolisé et fière Précommande</title>
 @php
+    // photos et vidéos du site, modifiables dans le back office (« Photos du site »)
+    $medias = \App\Models\Media::duSite();
+    $logo = \App\Models\Media::url($medias['logo'][0]->fichier ?? 'assets/logotiako.png');
     $partage = [
         'titre' => 'Tiakolisé et fière × Mélo Décalé',
         'texte' => 'T-shirts oversize en série limitée. Fait par nous, pour nous : monétisez les clips afro francophones. Précommande, livraison Yango à Abidjan, paiement Wave.',
-        'image' => url('/og-image.jpg'),
+        'image' => \App\Models\Media::url($medias['partage'][0]->fichier ?? 'og-image.jpg'),
     ];
 @endphp
 <meta name="description" content="{{ $partage['texte'] }}">
@@ -49,14 +52,20 @@
 <!-- ============ 1. HERO — la fille qui porte le t-shirt ============ -->
 <header class="hero" id="top">
   <div class="hero__top">
-    <img class="hero__logo" src="/assets/logotiako.png" alt="tiakolisé et fière">
+    <img class="hero__logo" src="{{ $logo }}" alt="tiakolisé et fière">
   </div>
   <h1>Tiakolisé et fière — Mélo Décalé</h1>
   <div class="hero__cols">
-    <figure class="hero__col" style="margin:0"><video src="/assets/shoot-6574.mp4" poster="/assets/shoot-6574.jpg" autoplay muted loop playsinline preload="auto"></video><figcaption>Dos · Warning</figcaption></figure>
-    <figure class="hero__col" style="margin:0"><video src="/assets/shoot-6571.mp4" poster="/assets/shoot-6571.jpg" autoplay muted loop playsinline preload="auto"></video><figcaption>Face · Mélo Décalé</figcaption></figure>
-    <figure class="hero__col" style="margin:0"><video src="/assets/shoot-6572.mp4" poster="/assets/shoot-6572.jpg" autoplay muted loop playsinline preload="auto"></video><figcaption>Blanc · Rouge</figcaption></figure>
-    <figure class="hero__col" style="margin:0"><video src="/assets/shoot-6573.mp4" poster="/assets/shoot-6573.jpg" autoplay muted loop playsinline preload="auto"></video><figcaption>Abidjan</figcaption></figure>
+    @foreach ($medias['hero'] ?? [] as $col)
+      <figure class="hero__col" style="margin:0">
+        @if ($col->est_video)
+          <video src="{{ $col->url }}" @if ($col->poster) poster="{{ $col->poster_url }}" @endif autoplay muted loop playsinline preload="auto"></video>
+        @else
+          <img src="{{ $col->url }}" alt="{{ $col->legende }}">
+        @endif
+        @if ($col->legende)<figcaption>{{ $col->legende }}</figcaption>@endif
+      </figure>
+    @endforeach
   </div>
   <a href="#collection" class="hero__suite" aria-label="Voir la collection"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v15M5 12l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
   <div class="marquee" aria-label="Fait par nous et pour nous. Parce que notre voix compte. Monétisez les clips afro francophones.">
@@ -107,7 +116,7 @@
 <!-- ============ 3. MUR DE TÉLÉS — images du clip Mélo Décalé ============ -->
 <section class="tvroom" id="clip" aria-label="Mélo Décalé, le clip">
   <div class="tvroom__head">
-    <img src="/assets/logotiako.png" alt="Mélo Décalé">
+    <img src="{{ $logo }}" alt="Mélo Décalé">
     <p class="tvroom__accroche">Plus qu’une passion</p>
     <p>Une identité, un état d’esprit et une communauté réunie par la musique et l’univers de Tiakola.</p>
     <p class="tvroom__fier"><strong>Être Tiakolisé</strong>, c’est vibrer au même rythme, partager la même énergie et être fier de faire partie du mouvement. 🇨🇮🌍</p>
@@ -122,10 +131,18 @@
 </main>
 
 <footer class="foot">
-    <img src="/assets/logotiako.png" alt="Mélo Décalé">
+    <img src="{{ $logo }}" alt="Mélo Décalé">
   <p>Pièces uniques en série limitée, en soutien à Tiakola.</p>
   <button type="button" class="cta" data-ouvre-panier style="background:var(--color-rouge);border:0;cursor:pointer">Précommander</button>
 </footer>
+
+@php
+    $mediasJs = [
+        'tv' => ($medias['tv_image'] ?? collect())->map(fn ($m) => $m->url)->values(),
+        'tvVideos' => ($medias['tv_video'] ?? collect())->map(fn ($v) => ['src' => $v->url, 'poster' => $v->poster_url])->values(),
+    ];
+@endphp
+<script>window.MEDIAS = @json($mediasJs);</script>
 
 <!-- ============ 4. PANIER — tiroir latéral : 1 panier → 2 coordonnées → 3 paiement Wave (+ capture) ============ -->
 <dialog id="tiroir" aria-labelledby="tiroir-titre" class="tiroir scheme-light fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-full max-w-[480px] bg-creme p-0 text-nuit shadow-[-20px_0_60px_rgba(13,9,7,.35)] backdrop:bg-nuit/60 backdrop:backdrop-blur-[2px]">

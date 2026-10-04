@@ -4,6 +4,7 @@
         ['admin.tableau', 'admin.tableau', 'Tableau de bord', 'M3 12 12 4l9 8M5 10v10h14V10'],
         ['admin.precommandes.index', 'admin.precommandes.*', 'Précommandes', 'M4 7h16M4 12h16M4 17h10'],
         ['admin.pieces.index', 'admin.pieces.*', 'Collection', 'M8 4 4 7l2 3 2-1v11h8V9l2 1 2-3-4-3c0 1.5-1.8 2.5-4 2.5S8 5.5 8 4Z'],
+        ['admin.site', 'admin.site*', 'Photos du site', 'M4 6h16v12H4zM4 15l4-4 4 4 3-3 5 5M15 9.5h.01'],
     ];
 @endphp
 <!doctype html>
@@ -68,11 +69,11 @@
 </main>
 
 {{-- Barre d'onglets (téléphone) --}}
-<nav class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t-2 border-nuit bg-creme pb-[env(safe-area-inset-bottom,0px)] lg:hidden">
+<nav class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t-2 border-nuit bg-creme pb-[env(safe-area-inset-bottom,0px)] lg:hidden">
     @foreach ($liens as [$route, $motif, $label, $icone])
         <a href="{{ route($route) }}" @class(['relative grid justify-items-center gap-1 pt-2.5 pb-2 text-[10px] font-bold tracking-[.1em] uppercase', 'text-rouge' => request()->routeIs($motif), 'text-nuit/60' => ! request()->routeIs($motif)])>
             <svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $icone }}"/></svg>
-            {{ $label === 'Tableau de bord' ? 'Accueil' : $label }}
+            {{ ['Tableau de bord' => 'Accueil', 'Précommandes' => 'Commandes', 'Photos du site' => 'Photos'][$label] ?? $label }}
             @if ($route === 'admin.precommandes.index' && $aTraiter)
                 <span class="absolute top-1.5 left-[calc(50%+6px)] grid min-w-5 place-items-center rounded-full bg-rouge px-1 text-[10px] tracking-normal text-creme tabular-nums">{{ $aTraiter }}</span>
             @endif

@@ -31,4 +31,7 @@
   /* fond papier terre cuite des planches de la collection */
   .papier{background:var(--color-terre) url("/assets/papier.jpg") center/cover;position:relative;isolation:isolate}
   .papier::before{content:"";position:absolute;inset:0;background:var(--color-terre);mix-blend-mode:multiply;opacity:.35;z-index:-1;border-radius:inherit}
+  /* aperçus des photos et vidéos (page Photos du site) */
+  .apercu>img,.apercu>video{display:block;width:100%;height:100%;object-fit:cover}
+  .apercu--contain>img,.apercu--contain>video{object-fit:contain;width:100%;height:100%}
 }
