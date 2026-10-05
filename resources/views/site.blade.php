@@ -121,7 +121,7 @@
     <p>Une identité, un état d’esprit et une communauté réunie par la musique et l’univers de Tiakola.</p>
     <p class="tvroom__fier"><strong>Être Tiakolisé</strong>, c’est vibrer au même rythme, partager la même énergie et être fier de faire partie du mouvement. 🇨🇮🌍</p>
   </div>
-  <div class="wall" id="wall" aria-hidden="true"></div>
+  @include('partials.bento')
 
   <div class="film" aria-label="Mélo Décalé. Fait par nous, pour nous. Parce que notre voix compte. Monétisez les clips afro francophones.">
     <div class="film__track" id="film" aria-hidden="true"></div>
@@ -139,7 +139,6 @@
 @php
     $mediasJs = [
         'tv' => ($medias['tv_image'] ?? collect())->map(fn ($m) => $m->url)->values(),
-        'tvVideos' => ($medias['tv_video'] ?? collect())->map(fn ($v) => ['src' => $v->url, 'poster' => $v->poster_url])->values(),
     ];
 @endphp
 <script>window.MEDIAS = @json($mediasJs);</script>
@@ -167,8 +166,8 @@
             <input type="radio" name="livraison" value="yango" checked class="sr-only">
             <span class="mt-1 size-5 shrink-0 rounded-full bg-rouge ring-4 ring-rouge/20" aria-hidden="true"></span>
             <span>
-              <span class="block text-lg leading-tight">Livraison Yango · Abidjan uniquement</span>
-              <span class="mt-1.5 block text-[15px] leading-snug text-nuit/70">On t'envoie ta pièce par Yango, à l'adresse que tu nous donnes. La course n'est pas incluse : tu la paies directement au livreur à la réception, en espèces ou par Wave. Son prix dépend de ta commune.</span>
+              <span class="block text-lg leading-tight">Précommande & livraison</span>
+              <span class="mt-1.5 block text-[15px] leading-snug text-nuit/70">Le paiement de votre précommande s’effectue uniquement via Wave, avant la livraison. La livraison est assurée par Yango et les frais, variables selon votre commune, sont à régler directement au livreur le jour de la réception.</span>
             </span>
           </label>
         </div>

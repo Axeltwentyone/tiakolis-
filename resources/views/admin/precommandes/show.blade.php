@@ -35,6 +35,15 @@
                     <div class="mt-4 rounded-2xl border-2 border-dashed border-nuit/20 px-5 py-8 text-center">
                         <p class="font-semibold">Pas encore de capture</p>
                         <p class="mt-1 text-sm opacity-60">Le client doit envoyer {{ fcfa($p->total) }} sur Wave puis sa capture. Elle apparaîtra ici et tu recevras un e-mail.</p>
+                        @if ($p->modifiable())
+                            <p class="mt-3 text-xs opacity-60">{{ $p->relances ? 'Relancé '.$p->relances.' fois, la dernière '.$p->relance_le?->locale('fr')->diffForHumans() : 'Jamais relancé' }}</p>
+                            <div class="mt-3 flex flex-wrap justify-center gap-2">
+                                <a href="{{ $p->whatsapp_relance }}" target="_blank" rel="noopener" class="btn bg-[#25d366] text-nuit">Relancer sur WhatsApp</a>
+                                @if ($p->email)
+                                    <form method="post" action="{{ route('admin.precommandes.relancer', $p) }}">@csrf<button class="btn btn-nuit">✉ Relancer par e-mail</button></form>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 @endif
             </section>

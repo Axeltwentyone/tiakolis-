@@ -27,6 +27,11 @@ class TableauController extends Controller
             'reservees' => (int) $reservees,
             'restant' => (int) $restant,
             'pieces' => $pieces,
+            // en attente de paiement : les plus anciennes d'abord (ce sont elles qu'il faut relancer)
+            'attente' => Precommande::attentePaiement()->with('lignes')->oldest()->limit(8)->get(),
+            'nbAttente' => Precommande::attentePaiement()->count(),
+            'aRelancerMail' => Precommande::attentePaiement()->whereNotNull('email')
+                ->where(fn ($q) => $q->whereNull('relance_le')->orWhere('relance_le', '<', now()->subDay()))->count(),
             'dernieres' => Precommande::with('lignes')->latest()->limit(6)->get(),
         ]);
     }

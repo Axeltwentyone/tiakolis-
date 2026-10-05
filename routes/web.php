@@ -24,6 +24,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('precommandes', [PrecommandeController::class, 'index'])->name('precommandes.index');
         Route::get('precommandes/export', [PrecommandeController::class, 'export'])->name('precommandes.export');
         Route::get('precommandes/{precommande}', [PrecommandeController::class, 'show'])->name('precommandes.show');
+        Route::post('precommandes/relancer', [PrecommandeController::class, 'relancerTous'])->name('precommandes.relancer-tous');
+        Route::post('precommandes/{precommande}/relancer', [PrecommandeController::class, 'relancer'])->name('precommandes.relancer');
         Route::get('precommandes/{precommande}/capture', [PrecommandeController::class, 'capture'])->name('precommandes.capture');
         Route::patch('precommandes/{precommande}/statut', [PrecommandeController::class, 'statut'])->name('precommandes.statut');
         Route::patch('precommandes/{precommande}', [PrecommandeController::class, 'update'])->name('precommandes.update');
@@ -40,6 +42,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
                     'commande' => new \App\Mail\NouvellePrecommande($p),
                     'valide' => new \App\Mail\PaiementValide($p),
                     'valide-equipe' => new \App\Mail\PaiementValideEquipe($p, auth()->user()->name),
+                    'relance' => new \App\Mail\RelancePaiement($p),
                     default => abort(404),
                 };
             });

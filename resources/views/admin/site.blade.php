@@ -14,7 +14,7 @@
             <section class="carte grid content-start gap-4">
                 <div>
                     <h2 class="font-display text-2xl uppercase">Logo</h2>
-                    <p class="text-sm opacity-60">En haut du site, au-dessus des télés et en bas de page. PNG sur fond transparent conseillé.</p>
+                    <p class="text-sm opacity-60">En haut du site, au-dessus de la grille et en bas de page. PNG sur fond transparent conseillé.</p>
                 </div>
                 <div id="apercu-{{ $logo->id }}" class="apercu apercu--contain h-44 overflow-hidden rounded-2xl bg-nuit p-6">@include('admin.partials.media-apercu', ['media' => $logo])</div>
                 <form method="post" enctype="multipart/form-data" action="{{ route('admin.site.remplacer', $logo) }}" class="grid gap-2 sm:grid-cols-[1fr_auto]">
@@ -63,10 +63,10 @@
         <p class="mt-3 text-xs opacity-60">L'image d'attente s'affiche le temps que la vidéo charge : prends une capture de la vidéo.</p>
     </section>
 
-    {{-- 3. Mur de télés --}}
+    {{-- 3. Grille --}}
     <section class="mt-10">
-        <h2 class="font-display text-3xl uppercase">Mur de télés</h2>
-        <p class="mt-1 mb-4 text-sm opacity-60">Les télés « zappent » entre ces images. Idéal : des captures du clip Mélo Décalé. Deux télés passent une vidéo.</p>
+        <h2 class="font-display text-3xl uppercase">Grille</h2>
+        <p class="mt-1 mb-4 text-sm opacity-60">La grille sous la collection. Une case « zappe » entre ces images (idéal : des captures du clip Mélo Décalé). Vidéo 1 = case « Le shooting », vidéo 2 = grande case « Mélo Décalé ». La photo de la case « Comment ça marche » est celle de la colonne 2 du premier écran.</p>
 
         <div class="grid gap-4 sm:grid-cols-2">
             @foreach ($m['tv_video'] ?? [] as $tv)
@@ -74,7 +74,7 @@
                     @csrf @method('put')
                     <div id="apercu-{{ $tv->id }}" class="apercu aspect-[4/3] overflow-hidden rounded-xl bg-nuit">@include('admin.partials.media-apercu', ['media' => $tv])</div>
                     <div class="grid content-start gap-2">
-                        <p class="surtitre">Télé vidéo {{ $loop->iteration }}</p>
+                        <p class="surtitre">{{ $loop->iteration === 1 ? 'Vidéo · case « Le shooting »' : 'Vidéo · case « Mélo Décalé »' }}</p>
                         @include('admin.partials.fichier', ['name' => 'fichier', 'label' => 'Nouvelle vidéo (mp4)', 'accept' => 'video/mp4,video/webm,video/quicktime', 'cible' => 'apercu-'.$tv->id])
                         @include('admin.partials.fichier', ['name' => 'poster', 'label' => 'Image d\'attente', 'accept' => 'image/jpeg,image/png,image/webp'])
                         <button class="btn btn-nuit">Enregistrer</button>
@@ -85,7 +85,7 @@
 
         <div class="carte mt-4">
             <div class="flex flex-wrap items-end justify-between gap-3">
-                <p class="surtitre">Images des télés · {{ count($m['tv_image'] ?? []) }}</p>
+                <p class="surtitre">Images qui zappent · {{ count($m['tv_image'] ?? []) }}</p>
                 <form method="post" enctype="multipart/form-data" action="{{ route('admin.site.tv') }}" class="flex flex-wrap gap-2">
                     @csrf
                     <div class="w-64 max-w-full">@include('admin.partials.fichier', ['name' => 'images', 'label' => 'Choisir des images', 'accept' => 'image/jpeg,image/png,image/webp', 'multiple' => true, 'requis' => true])</div>
@@ -98,7 +98,7 @@
                         <img src="{{ $img->url }}" alt="" loading="lazy" class="size-full object-cover">
                         <form method="post" action="{{ route('admin.site.supprimer', $img) }}" class="absolute top-1.5 right-1.5">
                             @csrf @method('delete')
-                            <button data-confirme="Retirer cette image du mur de télés ?" class="grid size-8 place-items-center rounded-full bg-nuit/80 text-creme transition hover:bg-rouge" aria-label="Retirer cette image">✕</button>
+                            <button data-confirme="Retirer cette image de la grille ?" class="grid size-8 place-items-center rounded-full bg-nuit/80 text-creme transition hover:bg-rouge" aria-label="Retirer cette image">✕</button>
                         </form>
                     </div>
                 @endforeach

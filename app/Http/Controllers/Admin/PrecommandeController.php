@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\Statut;
 use App\Http\Controllers\Controller;
+use App\Mail\RelancePaiement;
 use App\Models\Precommande;
+use App\Support\Courrier;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -55,6 +57,42 @@ class PrecommandeController extends Controller
         ]));
 
         return back()->with('ok', 'Enregistré.');
+    }
+
+    /** Relancer un client en attente de paiement : e-mail (s'il en a donné un) + date de relance. */
+    public function relancer(Precommande $precommande): RedirectResponse
+    {
+        if (! $precommande->modifiable()) {
+            return back()->with('ok', "{$precommande->reference} n'est plus en attente de paiement.");
+        }
+        if (! $precommande->email) {
+            return back()->with('ok', "{$precommande->nom} n'a pas donné d'e-mail : relance-le avec le bouton WhatsApp.");
+        }
+        $this->envoyerRelance($precommande);
+
+        return back()->with('ok', "Relance envoyée à {$precommande->nom} ({$precommande->email}).");
+    }
+
+    /** Relancer d'un coup tous les clients en attente de paiement qui ont un e-mail (sauf relancés il y a moins de 24 h). */
+    public function relancerTous(): RedirectResponse
+    {
+        $cibles = Precommande::attentePaiement()->whereNotNull('email')
+            ->where(fn ($q) => $q->whereNull('relance_le')->orWhere('relance_le', '<', now()->subDay()))->get();
+        $cibles->each(fn ($p) => $this->envoyerRelance($p));
+
+        $sansMail = Precommande::attentePaiement()->whereNull('email')->count();
+        $message = $cibles->count() ? "{$cibles->count()} relance(s) envoyée(s) par e-mail." : 'Personne à relancer par e-mail pour le moment (déjà relancés il y a moins de 24 h).';
+        if ($sansMail) {
+            $message .= " {$sansMail} client(s) sans e-mail : utilise le bouton WhatsApp.";
+        }
+
+        return back()->with('ok', $message);
+    }
+
+    private function envoyerRelance(Precommande $p): void
+    {
+        Courrier::envoyer($p->email, new RelancePaiement($p), $p->reference);
+        $p->update(['relance_le' => now(), 'relances' => $p->relances + 1]);
     }
 
     /** Capture du paiement Wave : fichier privé, visible seulement une fois connecté. */

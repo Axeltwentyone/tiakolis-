@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
-/** « Photos du site » : logo, colonnes du premier écran, mur de télés, image de partage. */
+/** « Photos du site » : logo, colonnes du premier écran, grille (images et vidéos), image de partage. */
 class SiteController extends Controller
 {
     private const IMAGE = 'mimes:jpg,jpeg,png,webp|max:10240';
@@ -18,7 +18,7 @@ class SiteController extends Controller
 
     private const VIDEO = 'mimes:mp4,webm,mov|max:10240';
 
-    private const NOMS = ['logo' => 'Logo', 'hero' => 'Colonne', 'tv_video' => 'Télé vidéo', 'tv_image' => 'Image des télés', 'partage' => 'Image de partage'];
+    private const NOMS = ['logo' => 'Logo', 'hero' => 'Colonne', 'tv_video' => 'Vidéo de la grille', 'tv_image' => 'Image de la grille', 'partage' => 'Image de partage'];
 
     public function index(): View
     {
@@ -74,19 +74,19 @@ class SiteController extends Controller
             Media::create(['zone' => 'tv_image', 'ordre' => ++$ordre, 'fichier' => $image->store('site', 'public')]);
         }
 
-        return back()->with('ok', count($request->file('images')).' image(s) ajoutée(s) au mur de télés.');
+        return back()->with('ok', count($request->file('images')).' image(s) ajoutée(s) à la grille.');
     }
 
     public function supprimer(Media $media): RedirectResponse
     {
         abort_unless($media->zone === 'tv_image', 403);
         if (Media::where('zone', 'tv_image')->count() <= 1) {
-            return back()->with('ok', 'Il faut garder au moins une image sur le mur de télés.');
+            return back()->with('ok', 'Il faut garder au moins une image dans la grille.');
         }
         $this->supprimerFichier($media->fichier);
         $media->delete();
 
-        return back()->with('ok', 'Image retirée du mur de télés.');
+        return back()->with('ok', 'Image retirée de la grille.');
     }
 
     /** Seuls les fichiers envoyés depuis le back office sont effacés, jamais ceux livrés avec le site. */

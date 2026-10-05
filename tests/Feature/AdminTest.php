@@ -108,4 +108,30 @@ class AdminTest extends TestCase
 
         $this->post('/admin/connexion', ['email' => 'awa@example.test', 'password' => 'un-long-secret'])->assertRedirect('/admin');
     }
+
+    public function test_relancer_les_clients_en_attente_de_paiement(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+        $this->actingAs(User::factory()->create());
+        $commande = fn (?string $email) => $this->postJson('/api/precommandes', [
+            'articles' => [['piece' => 'melo-noir', 'taille' => 'S', 'quantite' => 1]],
+            'nom' => 'Awa Koné', 'telephone' => '0700000001', 'email' => $email, 'quartier' => 'Riviera', 'commune' => 'Cocody',
+        ])->assertCreated();
+        $commande('awa@example.test');
+        $commande(null); // sans e-mail : relance par WhatsApp seulement
+
+        $this->get('/admin')->assertOk()->assertSee('En attente de paiement')->assertSee('Relancer tout le monde par e-mail (1)')->assertSee('wa.me/2250700000001', false);
+
+        $this->post('/admin/precommandes/relancer')->assertRedirect()->assertSessionHas('ok', fn ($m) => str_contains($m, '1 relance(s) envoyée(s)'));
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\RelancePaiement::class, 1);
+        $p = Precommande::whereNotNull('email')->first();
+        $this->assertSame(1, $p->relances);
+
+        // relancée il y a moins de 24 h : pas de nouvel envoi groupé…
+        $this->post('/admin/precommandes/relancer');
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\RelancePaiement::class, 1);
+        // …mais la relance à l'unité reste possible
+        $this->post("/admin/precommandes/{$p->id}/relancer")->assertRedirect();
+        $this->assertSame(2, $p->fresh()->relances);
+    }
 }

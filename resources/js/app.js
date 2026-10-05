@@ -13,9 +13,8 @@ const stockTotal = p => TAILLES.reduce((s,t)=>s+stockDe(p,t),0);
 
 /* Écrans des télés : remplacer par des captures du clip « Mélo Décalé » (images .jpg ou vidéos .mp4).
    En attendant, ce sont des images du shooting. */
-// gérés dans le back office (« Photos du site ») et fournis par la page (window.MEDIAS)
+// images de la case qui « zappe » : back office « Photos du site », fournies par la page (window.MEDIAS)
 const CLIP_SOURCES = window.MEDIAS?.tv?.length ? window.MEDIAS.tv : Array.from({length:14},(_,i)=>`/assets/tv/still-${String(i+1).padStart(2,"0")}.jpg`);
-const TV_VIDEOS = window.MEDIAS?.tvVideos?.length ? window.MEDIAS.tvVideos : [{src:"/assets/shoot-6569.mp4",poster:"/assets/shoot-6569.jpg"},{src:"/assets/shoot-6570.mp4",poster:"/assets/shoot-6570.jpg"}]; // télés qui jouent en vidéo
 const FILM_WORDS = ["Mélo","Décalé","Fait","par","nous","pour","nous","Parce","que","notre","voix","compte","Monétisez","les","clips","Afro","Francophones"];
 const RED = new Set(["Décalé","Afro","voix"]), OCRE = new Set(["Monétisez"]);
 
@@ -256,6 +255,12 @@ const collection = (function(){
   catalogue.surChange(()=>{ if(!construite){ construite=true; construit(); } else majStock(); });
   return {
     erreur(){ detail.textContent="Impossible de charger la collection. Recharge la page dans un instant."; ajout.disabled=true; },
+    /** aller à la pièce k (depuis la grille bento) */
+    voir(k){
+      if(!N()) return;
+      if(carrousel){ geste(); set(k,k>cur?1:k<cur?-1:0); section.scrollIntoView({behavior:reduce?"auto":"smooth"}); }
+      else{ const span=section.offsetHeight-innerHeight; scrollTo({top:section.offsetTop+span*(k+.5)/N(),behavior:reduce?"auto":"smooth"}); }
+    },
   };
 })();
 
@@ -440,33 +445,71 @@ const tiroir = (function(){
 
 catalogue.charge().catch(()=>collection.erreur());
 
-/* ---------- 3. Mur de télés ---------- */
-(function tvs(){
-  // bruit statique généré une fois
-  const c=document.createElement("canvas"); c.width=c.height=160; const x=c.getContext("2d"), d=x.createImageData(160,160);
-  for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255|0; d.data[i]=d.data[i+1]=d.data[i+2]=v; d.data[i+3]=255;}
-  x.putImageData(d,0,0); document.documentElement.style.setProperty("--noise",`url(${c.toDataURL()})`);
+/* ---------- 3. Grille bento : la pièce qui change, la collection, le vrai stock, les images qui zappent ---------- */
+(function bento(){
+  const produit=document.getElementById("bento-produit"), img=document.getElementById("bento-produit-img"),
+        nom=document.getElementById("bento-produit-nom"), prix=document.getElementById("bento-produit-prix"),
+        liste=document.getElementById("bento-liste"), barres=document.getElementById("bento-barres"),
+        restant=document.getElementById("bento-restant"), restantTexte=document.getElementById("bento-restant-texte"),
+        zap=document.getElementById("bento-zap");
+  if(!produit) return;
+  let i=0, tourne=null;
+  const court=p=>`${p.nom.split(" ")[0]} ${p.couleur}`;
+  // couleur réelle du t-shirt pour sa barre (nom de couleur en français → teinte)
+  const TEINTES={noir:"#0d0907",blanc:"#ffffff",creme:"#f6efe4",ecru:"#efe6d2",beige:"#e3d2b4",gris:"#9a9590",rouge:"#e3342a",bordeaux:"#6e1424",
+    rose:"#f29bb8",orange:"#f07f2a",ocre:"#f2a33a",jaune:"#f5c63a",vert:"#2f8f4e",kaki:"#77703f",bleu:"#2f5bd3",marine:"#1d2a4d",violet:"#7a4fc7",
+    marron:"#6b3b22",brun:"#4a2218",terre:"#c4743c",camel:"#b98546"};
+  const teinte=c=>{ const mots=c.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").split(/[\s-]+/); for(const m of mots) if(TEINTES[m]) return TEINTES[m]; return "#f6efe4"; };
 
-  const wall=document.getElementById("wall"), N=9, withPanel=[0,2,5,7], withAnt=[1,3];
-  let k=0; const next=()=>CLIP_SOURCES[(k++)%CLIP_SOURCES.length];
-  const tvs=[];
-  for(let i=0;i<N;i++){
-    const tv=document.createElement("div"); tv.className="tv"+(withPanel.includes(i)?" tv--side":"");
-    const vid = i===2 ? TV_VIDEOS[0] : i===6 ? TV_VIDEOS[1] : null;
-    const media = vid ? `<video src="${vid.src}" ${vid.poster?`poster="${vid.poster}"`:""} autoplay muted loop playsinline></video>` : `<img src="${next()}" alt="" loading="lazy">`;
-    tv.innerHTML = (withAnt.includes(i)?'<span class="tv__ant"></span>':'') +
-      `<div class="tv__screen">${media}<span class="tv__static"></span><span class="tv__osd">CH ${String(i+2).padStart(2,"0")}</span></div>` +
-      (withPanel.includes(i)?'<div class="tv__panel"><span class="tv__knob"></span><span class="tv__knob"></span><span class="tv__grill"></span></div>':'');
-    wall.appendChild(tv); tvs.push(tv);
+  function montrePiece(k){
+    const p=PIECES[k]; if(!p) return;
+    i=k; produit.dataset.voir=k;
+    img.src=p.face; img.alt=`${p.nom} ${p.couleur}`;
+    nom.textContent=p.nom; prix.textContent=`${p.couleur} · ${fcfa(p.prix)}`;
   }
-  if(reduce) return;
-  // zapping aléatoire
-  setInterval(()=>{
-    const tv=tvs[Math.random()*N|0], img=tv.querySelector("img"); if(!img) return;
-    tv.classList.add("is-switching");
-    setTimeout(()=>{ img.src=next(); const o=tv.querySelector(".tv__osd"); o.textContent="CH "+String(Math.random()*90+10|0); },160);
-    setTimeout(()=>tv.classList.remove("is-switching"),340);
-  },650);
+  function piecesuivante(){
+    if(!PIECES.length) return;
+    produit.classList.add("is-change");
+    setTimeout(()=>{ montrePiece((i+1)%PIECES.length); produit.classList.remove("is-change"); },450);
+  }
+
+  catalogue.surChange(()=>{
+    // carte « La collection »
+    liste.innerHTML=PIECES.map((p,k)=>{
+      const n=stockTotal(p);
+      return `<li class="${n?"":"is-epuise"}"><img src="${p.face}" alt=""><span><b>${p.nom}</b><small>${p.couleur} · ${fcfa(p.prix)}${n?"":" · épuisé"}</small></span><button type="button" data-voir="${k}">Voir</button></li>`;
+    }).join("");
+    // série limitée : pièces restantes, une barre par pièce (part du stock de départ qu'il reste)
+    const total=PIECES.reduce((s,p)=>s+stockTotal(p),0);
+    restant.textContent=total.toLocaleString("fr-FR").replace(/\s/g," ");
+    restantTexte.textContent= total>1 ? "pièces encore disponibles" : total===1 ? "pièce encore disponible" : "tout est parti, merci !";
+    const parts=PIECES.map(p=>{ const n=stockTotal(p), depart=n+(p.reservees||0); return depart? Math.round(n/depart*100) : 0; });
+    const mini=Math.min(...parts);
+    barres.innerHTML=PIECES.map((p,k)=>`<div class="bento__barre${parts[k]===mini && mini<100?" is-bas":""}" title="${court(p)} : ${stockTotal(p)} restantes"><b>${stockTotal(p)}</b><i style="--h:0;--teinte:${teinte(p.couleur)}"></i><span>${court(p)}</span></div>`).join("");
+    requestAnimationFrame(()=>barres.querySelectorAll("i").forEach((b,k)=>b.style.setProperty("--h",Math.max(4,parts[k]))));
+    if(img.src.endsWith("/") || !img.getAttribute("src")) montrePiece(0);
+    if(!tourne && !reduce && PIECES.length>1) tourne=setInterval(()=>{ if(!document.hidden) piecesuivante(); },3800);
+  });
+
+  // « Voir » et la case de la pièce mènent à la pièce dans la collection
+  document.getElementById("bento").addEventListener("click",e=>{
+    const v=e.target.closest("[data-voir]"); if(!v) return;
+    e.preventDefault(); collection.voir(+v.dataset.voir);
+  });
+
+  // vidéos de la grille : lecture quand elles sont à l'écran, pause sinon (batterie et données mobiles)
+  const vus=new IntersectionObserver(es=>es.forEach(e=>{ const v=e.target; if(e.isIntersecting) v.play().catch(()=>{}); else v.pause(); }),{threshold:.25});
+  document.querySelectorAll("#bento video").forEach(v=>{ v.muted=true; vus.observe(v); });
+
+  // les images du clip zappent dans leur case
+  if(zap && CLIP_SOURCES.length>1 && !reduce){
+    let z=0;
+    setInterval(()=>{
+      if(document.hidden) return;
+      zap.parentElement.classList.add("is-zap");
+      setTimeout(()=>{ z=(z+1)%CLIP_SOURCES.length; zap.src=CLIP_SOURCES[z]; zap.parentElement.classList.remove("is-zap"); },300);
+    },2600);
+  }
 })();
 
 /* ---------- Pellicule : les mots avancent image par image, sans jamais s'arrêter ---------- */

@@ -2,10 +2,11 @@
 @import "./theme.css"; /* palette et typo partagées avec le back office */
 @source "../views/site.blade.php";
 @source "../js/app.js";
+@source "../views/partials/bento.blade.php";
 
 
 :root{--gutter:clamp(16px,2.4vw,36px);color-scheme:dark}
-/* Layout : 3 scènes plein écran — (1) colonnes vidéo du shooting, (2) un t-shirt au centre qui change au scroll, (3) mur de télés + pellicule de mots */
+/* Layout : 3 scènes — (1) colonnes vidéo du shooting, (2) un t-shirt au centre qui change au scroll, (3) grille bento + pellicule de mots */
 /* règles de base dans @layer base pour que les utilitaires Tailwind puissent les surcharger */
 @layer base{
   html,body{margin:0}
@@ -156,7 +157,7 @@
 #ajout:disabled:hover{background:var(--color-nuit)}
 #ajout.is-done{background:var(--color-rouge)}
 
-/* ============ 3. MUR DE TÉLÉS ============ */
+/* ============ 3. GRILLE BENTO + PELLICULE ============ */
 .tvroom{position:relative;background:radial-gradient(120% 80% at 50% 30%,#2a1610 0%,var(--color-nuit) 70%);padding-top:clamp(56px,9vh,110px);overflow:hidden}
 .tvroom__head{text-align:center;padding-inline:var(--gutter)}
 .tvroom__head img{height:clamp(70px,10vw,140px);width:auto;margin:0 auto;transform:rotate(-6deg)}
@@ -165,39 +166,71 @@
 .tvroom__head .tvroom__accroche{margin-top:22px;max-width:none;font:400 clamp(40px,6.4vw,84px)/.92 var(--font-display);text-transform:uppercase;opacity:1;color:var(--color-creme)}
 .tvroom__head .tvroom__fier{margin-top:18px;padding-top:18px;max-width:34ch;border-top:2px solid rgba(246,239,228,.15);font-size:clamp(16px,1.45vw,20px);opacity:1}
 .tvroom__fier strong{color:var(--color-ocre);font-weight:800}
-.wall{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:clamp(34px,4.6vw,78px);gap:clamp(6px,.8vw,12px);
-  max-width:1500px;margin:clamp(64px,6.5vw,100px) auto 0; /* place pour les antennes */padding-inline:var(--gutter);align-items:end}
-.tv{position:relative;height:100%;border-radius:14px;padding:7% 7% 7% 7%;background:var(--tvc,#3a2a22);
-  box-shadow:inset 0 2px 0 rgba(255,255,255,.12),inset 0 -6px 12px rgba(0,0,0,.45),0 18px 30px rgba(0,0,0,.55);display:flex;gap:6%}
-.tv--side{padding-right:4%}
-.tv__screen{position:relative;flex:1;overflow:hidden;border-radius:14% / 18%;background:#050403;box-shadow:inset 0 0 0 3px rgba(0,0,0,.6),0 0 0 4px rgba(0,0,0,.35)}
-.tv__screen img,.tv__screen video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(1.25) contrast(1.08)}
-.tv__screen::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
-  background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.65) 100%)}
-.tv__screen::after{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;background:linear-gradient(130deg,rgba(255,255,255,.16) 0%,transparent 35%);animation:flicker 4s steps(2) infinite}
-@keyframes flicker{50%{opacity:.75}}
-.tv__static{position:absolute;inset:-20%;z-index:2;background-image:var(--noise);background-size:160px;opacity:0;animation:noise .25s steps(4) infinite;mix-blend-mode:screen}
-.tv.is-switching .tv__static{opacity:1}
-.tv.is-switching img,.tv.is-switching video{filter:brightness(1.8) blur(1px)}
-@keyframes noise{25%{background-position:40px 60px}50%{background-position:-60px 20px}75%{background-position:10px -50px}}
-.tv__osd{position:absolute;top:8%;right:9%;z-index:5;font:400 clamp(9px,.9vw,14px)/1 var(--font-display);color:#9cff7a;letter-spacing:.06em;text-shadow:0 0 6px rgba(156,255,122,.7)}
-.tv__panel{width:16%;display:flex;flex-direction:column;align-items:center;gap:10%;padding-top:4%}
-.tv__knob{width:70%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9c7b0,#5c4637 70%);box-shadow:0 2px 3px rgba(0,0,0,.5)}
-.tv__grill{width:70%;flex:1;max-height:40%;background:repeating-linear-gradient(0deg,rgba(0,0,0,.45) 0 2px,transparent 2px 5px);border-radius:3px}
-.tv__ant{position:absolute;bottom:100%;left:50%;width:clamp(56px,6vw,110px);height:clamp(40px,4.2vw,70px);transform:translateX(-50%);pointer-events:none} /* hauteur bornée : ne monte jamais dans le texte */
-.tv__ant::before,.tv__ant::after{content:"";position:absolute;bottom:0;left:50%;width:2px;height:100%;background:#8d7c6c;transform-origin:bottom}
-.tv__ant::before{transform:rotate(-32deg)}.tv__ant::after{transform:rotate(28deg)}
-/* placement en pile (12 colonnes) */
-.tv:nth-child(1){grid-column:1/4;grid-row:span 4;--tvc:#7a3b22}
-.tv:nth-child(2){grid-column:4/7;grid-row:span 3;--tvc:#d9cbb4}
-.tv:nth-child(3){grid-column:7/10;grid-row:span 5;--tvc:#1c1512}
-.tv:nth-child(4){grid-column:10/13;grid-row:span 4;--tvc:#b85a2c}
-.tv:nth-child(5){grid-column:1/3;grid-row:span 3;--tvc:#e4d6bf}
-.tv:nth-child(6){grid-column:3/6;grid-row:span 4;--tvc:#2a1c16}
-.tv:nth-child(7){grid-column:6/8;grid-row:span 3;--tvc:#f2a33a}
-.tv:nth-child(8){grid-column:8/11;grid-row:span 4;--tvc:#5a2a1e}
-.tv:nth-child(9){grid-column:11/13;grid-row:span 3;--tvc:#d4c4ab}
-.tv[style*="--tvc:#e"],.tv:nth-child(2),.tv:nth-child(5),.tv:nth-child(9){color:var(--color-nuit)}
+/* ---------- Grille bento (remplace le mur de télés) ---------- */
+.bento{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:clamp(150px,13.5vw,215px);gap:clamp(10px,1.1vw,16px);
+  grid-template-areas:"produit video zap collection" "produit stats stats collection" "etapes stats stats livraison" "etapes manifeste clip clip";
+  max-width:1400px;margin:clamp(44px,5.5vw,80px) auto 0;padding-inline:var(--gutter)}
+.bento__case{position:relative;margin:0;overflow:hidden;isolation:isolate;border-radius:clamp(20px,2vw,30px);color:var(--color-creme);text-decoration:none;background:#1c1410}
+.bento__case>img,.bento__case>video{position:absolute;inset:0;z-index:-1;width:100%;height:100%;object-fit:cover}
+.bento__h{margin:0;font:400 clamp(24px,2.1vw,34px)/1 var(--font-display);text-transform:uppercase}
+.bento__sous{margin:6px 0 0;font:500 clamp(13px,1vw,15px)/1.35 var(--font-body);opacity:.85}
+.bento__titre{display:block;font:400 clamp(28px,2.6vw,44px)/.92 var(--font-display);text-transform:uppercase}
+.bento__prix{display:block;margin-top:6px;font:700 clamp(16px,1.4vw,22px)/1.1 var(--font-body)}
+.bento__bas{position:absolute;left:clamp(16px,1.6vw,24px);right:clamp(16px,1.6vw,24px);bottom:clamp(16px,1.6vw,22px);z-index:2}
+.bento__pastille{position:absolute;left:14px;top:14px;z-index:2;display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;
+  background:rgba(13,9,7,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font:700 11px/1 var(--font-body);letter-spacing:.12em;text-transform:uppercase;color:var(--color-creme)}
+.bento__pastille--clair{background:var(--color-creme);color:var(--color-nuit)}
+.bento__rec{width:8px;height:8px;border-radius:50%;background:var(--color-rouge);animation:rec 1.2s steps(2) infinite}
+@keyframes rec{50%{opacity:.2}}
+/* la pièce, sur le papier terre cuite des planches */
+.bento__produit{grid-area:produit;background:var(--color-terre) url("/assets/papier.jpg") center/cover;transition:transform .3s}
+.bento__produit::before{content:"";position:absolute;inset:0;z-index:-2;background:var(--color-terre);mix-blend-mode:multiply;opacity:.35}
+.bento__produit>img{inset:8% 6% 30%;width:88%;height:62%;object-fit:contain;filter:drop-shadow(0 24px 24px rgba(60,20,5,.4));transition:opacity .45s,translate .45s}
+.bento__produit.is-change>img{opacity:0;translate:0 10px}
+.bento__produit:hover{transform:translateY(-3px)}
+.bento__produit .bento__titre,.bento__produit .bento__prix{color:var(--color-nuit)}
+.bento__video{grid-area:video}
+.bento__zap{grid-area:zap}
+.bento__zap>img{transition:opacity .35s,filter .35s}
+.bento__zap.is-zap>img{opacity:.15;filter:blur(2px) brightness(1.6)}
+/* la collection, comme une carte de menu */
+.bento__collection{grid-area:collection;display:flex;flex-direction:column;padding:clamp(16px,1.6vw,24px);background:var(--color-rouge)}
+.bento__liste{display:grid;gap:10px;margin:14px 0 0;padding:0;list-style:none;overflow:auto;scrollbar-width:none}
+.bento__liste li{display:flex;align-items:center;gap:12px;padding:8px 10px 8px 8px;border-radius:16px;background:var(--color-creme);color:var(--color-nuit)}
+.bento__liste img{flex:none;width:54px;height:54px;border-radius:12px;background:var(--color-terre);object-fit:contain;padding:4px}
+.bento__liste b{display:block;font:800 14px/1.15 var(--font-body)}
+.bento__liste small{display:block;margin-top:3px;font:600 12px/1.2 var(--font-body);opacity:.65}
+.bento__liste button{margin-left:auto;flex:none;padding:8px 12px;border:0;border-radius:999px;background:var(--color-nuit);color:var(--color-creme);font:700 11px/1 var(--font-body);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.bento__liste button:hover{background:var(--color-rouge)}
+.bento__liste li.is-epuise{opacity:.55}
+/* série limitée : le vrai stock */
+.bento__stats{grid-area:stats;display:flex;flex-direction:column;padding:clamp(20px,2.4vw,34px);background:var(--color-terre)}
+.bento__filigrane{position:absolute;right:4%;top:6%;z-index:-1;margin:0;font:400 clamp(70px,8.5vw,140px)/.82 var(--font-display);text-transform:uppercase;text-align:right;color:rgba(246,239,228,.13);pointer-events:none}
+.bento__chiffre{margin:10px 0 0;font:400 clamp(56px,6vw,96px)/.9 var(--font-display);font-variant-numeric:tabular-nums}
+.bento__barres{display:flex;align-items:flex-end;gap:clamp(8px,1vw,16px);height:clamp(110px,11vw,190px);margin-top:auto;padding-top:16px}
+.bento__barre{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+.bento__barre i{display:block;width:100%;min-height:6px;height:calc(var(--h) * 1% - 44px);border-radius:14px 14px 6px 6px;background:var(--teinte,var(--color-creme));
+  box-shadow:inset 0 0 0 1.5px rgba(246,239,228,.35),0 10px 20px rgba(60,20,5,.25);transition:height 1s cubic-bezier(.2,.8,.2,1)} /* couleur réelle du t-shirt */
+.bento__barre b{font:400 clamp(18px,1.6vw,24px)/1 var(--font-display);font-variant-numeric:tabular-nums}
+.bento__barre.is-bas i{box-shadow:0 0 0 3px var(--color-rouge),0 10px 20px rgba(60,20,5,.25)} /* la plus entamée */
+.bento__barre.is-bas b{color:var(--color-nuit)}
+.bento__barre span{font:700 11px/1 var(--font-body);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+/* comment ça marche */
+.bento__etapes{grid-area:etapes;background:var(--color-creme)}
+.bento__etapes::after{content:"";position:absolute;inset:40% 0 0;z-index:-1;background:linear-gradient(transparent,rgba(13,9,7,.55))}
+.bento__chips{position:absolute;left:0;right:0;bottom:clamp(16px,2vw,26px);display:grid;gap:10px;margin:0;padding:0 clamp(12px,1.4vw,20px);list-style:none}
+.bento__chips li{justify-self:start;padding:9px 14px;border-radius:999px;background:var(--color-creme);color:var(--color-nuit);box-shadow:0 10px 24px rgba(13,9,7,.35);font:700 clamp(12px,1vw,14px)/1 var(--font-body)}
+.bento__chips li:nth-child(2){justify-self:end}
+.bento__chips li:nth-child(3){justify-self:center}
+/* livraison */
+.bento__livraison{grid-area:livraison;padding:clamp(16px,1.6vw,22px);background:var(--color-creme);color:var(--color-nuit)}
+.bento__communes{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0;padding:0;list-style:none}
+.bento__communes li{padding:5px 10px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1.5px rgba(227,52,42,.35);font:600 11.5px/1 var(--font-body)}
+/* manifeste */
+.bento__manifeste{grid-area:manifeste;display:flex;flex-direction:column;justify-content:flex-end;padding:clamp(16px,1.6vw,24px);background:var(--color-ocre);color:var(--color-nuit)}
+.bento__manif{margin:0;font:400 clamp(26px,2.4vw,40px)/.95 var(--font-display);text-transform:uppercase}
+.bento__clip{grid-area:clip}
+.bento__clip::after{content:"";position:absolute;inset:45% 0 0;z-index:-1;background:linear-gradient(transparent,rgba(13,9,7,.7))}
 
 /* pellicule de mots */
 .film{position:relative;margin-top:clamp(48px,8vh,90px);background:#000;padding-block:26px;overflow:hidden}
@@ -229,14 +262,12 @@ body:has(.tiroir[open]){overflow:hidden} /* sur body et pas html : sinon body de
 @media (max-width:760px){
   .hero__cols{grid-template-columns:repeat(2,1fr)}
   .hero__col:nth-child(n+3){display:none}
-  .wall{grid-template-columns:repeat(6,1fr);grid-auto-rows:44px;margin-top:64px}
-  /* antennes : taille fixe, et seulement sur les télés du haut (sinon elles traversent le texte ou la grande télé) */
-  .tv__ant{height:40px;width:56px}
-  .tv:nth-child(n+3) .tv__ant{display:none}
-  .tv:nth-child(n){grid-column:auto/span 3;grid-row:span 3}
-  .tv:nth-child(3){grid-column:1/-1;grid-row:span 5}
-  .tv:nth-child(n+8){display:none}
-  .tv__panel{display:none}
+  .bento{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(150px,auto);
+    grid-template-areas:"produit produit" "produit produit" "video zap" "stats stats" "stats stats" "collection collection" "etapes manifeste" "etapes manifeste" "livraison livraison" "clip clip"}
+  .bento__collection{min-height:300px}
+  .bento__barres{gap:8px}
+  .bento__barre span{white-space:normal;text-align:center;font-size:9.5px;line-height:1.15;min-height:2.3em}
+  .bento__clip{min-height:220px}
   .rack__head{padding-top:calc(env(safe-area-inset-top,0px) + 76px)}
   .rack__foot{flex-direction:column;align-items:stretch;gap:14px}
   .rack__side{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px}
@@ -255,7 +286,7 @@ body:has(.tiroir[open]){overflow:hidden} /* sur body et pas html : sinon body de
   .marquee__track{animation-duration:120s}
   .hero__col video,.hero__logo{animation:none}
   .hero__suite,.rack__scroll svg{animation:none}
-  .tv__screen::after,.tv__static{animation:none}
+  .bento__rec{animation:none}
   .tee__inner{animation:none}
   .slide,.rack__name{transition-duration:.01s}
   .tiroir,.tiroir::backdrop{transition-duration:.01s}

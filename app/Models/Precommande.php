@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 
-#[Fillable(['reference', 'jeton', 'nom', 'telephone', 'email', 'commune', 'quartier', 'note_client', 'livraison', 'total', 'statut', 'capture', 'capture_le', 'note'])]
+#[Fillable(['reference', 'jeton', 'nom', 'telephone', 'email', 'commune', 'quartier', 'note_client', 'livraison', 'total', 'statut', 'capture', 'capture_le', 'relance_le', 'relances', 'note'])]
 #[Hidden(['jeton'])]
 class Precommande extends Model
 {
@@ -21,7 +21,7 @@ class Precommande extends Model
 
     protected function casts(): array
     {
-        return ['statut' => Statut::class, 'total' => 'integer', 'capture_le' => 'datetime'];
+        return ['statut' => Statut::class, 'total' => 'integer', 'capture_le' => 'datetime', 'relance_le' => 'datetime', 'relances' => 'integer'];
     }
 
     /** TEF- + 5 lettres sans ambiguïté (ni I, ni O), unique. */
@@ -43,6 +43,24 @@ class Precommande extends Model
     public function modifiable(): bool
     {
         return $this->statut === Statut::EnAttente && ! $this->capture;
+    }
+
+    /** En attente de paiement : commande passée, pas encore de capture Wave. */
+    public function scopeAttentePaiement($query)
+    {
+        return $query->where('statut', Statut::EnAttente)->whereNull('capture');
+    }
+
+    /** Lien WhatsApp vers le client avec un message de relance déjà écrit. */
+    public function getWhatsappRelanceAttribute(): string
+    {
+        $prenom = explode(' ', $this->nom)[0];
+        $wave = config('services.precommandes.wave_numero');
+        $texte = "Bonjour {$prenom} ! C'est Tiakolisé et fière 👋 Ta précommande {$this->reference} (".fcfa($this->total).') est réservée, mais on n\'a pas encore reçu ton paiement Wave.'
+            .($wave ? " Envoie ".fcfa($this->total)." au {$wave}, puis envoie-nous la capture ici avec ta référence {$this->reference}." : '')
+            .' Merci !';
+
+        return 'https://wa.me/'.$this->whatsapp.'?text='.rawurlencode($texte);
     }
 
     public function getAdresseAttribute(): string

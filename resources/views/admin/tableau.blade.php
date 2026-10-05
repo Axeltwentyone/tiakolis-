@@ -28,6 +28,8 @@
         </div>
     </section>
 
+    @include('admin.partials.attente')
+
     <div class="mt-10 grid gap-10 xl:grid-cols-[1.4fr_1fr]">
         {{-- Dernières précommandes --}}
         <section>
