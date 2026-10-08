@@ -124,7 +124,7 @@
                     <input type="hidden" name="note" value="{{ $p->note }}">
                     <label><span class="etiquette">Prénom et nom</span><input name="nom" value="{{ old('nom', $p->nom) }}" required class="champ"></label>
                     <label><span class="etiquette">Téléphone WhatsApp</span><input name="telephone" type="tel" value="{{ old('telephone', $p->telephone) }}" required class="champ"></label>
-                    <label><span class="etiquette">E-mail</span><input name="email" type="email" value="{{ old('email', $p->email) }}" class="champ"></label>
+                    <label><span class="etiquette">E-mail</span><input name="email" type="email" value="{{ old('email', $p->email) }}" required class="champ"></label>
                     <label><span class="etiquette">Quartier et repère</span><input name="quartier" value="{{ old('quartier', $p->quartier) }}" required class="champ"></label>
                     <label><span class="etiquette">Commune</span>
                         <select name="commune" required class="champ">

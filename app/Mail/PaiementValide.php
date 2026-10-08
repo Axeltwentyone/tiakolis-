@@ -9,7 +9,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-/** Au client : son paiement Wave est validé, la commande est confirmée. */
+/** Au client : son paiement Wave est validé, la précommande est confirmée. C'est le seul e-mail qu'il reçoit (rien avant le paiement). */
 class PaiementValide extends Mailable
 {
     use Queueable, SerializesModels;
@@ -18,7 +18,7 @@ class PaiementValide extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: "C'est validé ! Ta commande {$this->precommande->reference} est confirmée");
+        return new Envelope(subject: "C'est validé ! Ta précommande {$this->precommande->reference} est confirmée");
     }
 
     public function content(): Content

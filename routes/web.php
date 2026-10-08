@@ -7,10 +7,8 @@ use App\Http\Controllers\Admin\SiteController;
 use App\Http\Controllers\Admin\TableauController;
 use Illuminate\Support\Facades\Route;
 
-// le site public ; l'API est dans routes/api.php
 Route::view('/', 'site');
 
-// back office
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('guest')->group(function () {
         Route::get('connexion', [ConnexionController::class, 'formulaire'])->name('connexion');
@@ -31,13 +29,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('precommandes/{precommande}', [PrecommandeController::class, 'update'])->name('precommandes.update');
         Route::delete('precommandes/{precommande}', [PrecommandeController::class, 'destroy'])->name('precommandes.destroy');
 
-        // aperçu des e-mails sur la dernière commande (en local uniquement) : /admin/apercu-mail/client|paiement|commande
         if (app()->isLocal()) {
             Route::get('apercu-mail/{type}', function (string $type) {
                 $p = \App\Models\Precommande::latest('id')->firstOrFail();
 
                 return match ($type) {
-                    'client' => new \App\Mail\PrecommandeRecue($p),
                     'paiement' => new \App\Mail\CaptureRecue($p),
                     'commande' => new \App\Mail\NouvellePrecommande($p),
                     'valide' => new \App\Mail\PaiementValide($p),

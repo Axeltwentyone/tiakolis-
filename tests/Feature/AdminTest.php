@@ -30,7 +30,7 @@ class AdminTest extends TestCase
 
         $this->postJson('/api/precommandes', [
             'articles' => [['piece' => 'melo-noir', 'taille' => 'S', 'quantite' => 1]],
-            'nom' => 'Awa', 'telephone' => '0700000001', 'quartier' => 'Riviera', 'commune' => 'Cocody',
+            'nom' => 'Awa', 'telephone' => '0700000001', 'email' => 'awa@example.test', 'quartier' => 'Riviera', 'commune' => 'Cocody',
         ])->assertCreated();
         $ref = Precommande::first()->reference;
 
@@ -86,7 +86,7 @@ class AdminTest extends TestCase
         $this->actingAs(User::factory()->create());
         $this->postJson('/api/precommandes', [
             'articles' => [['piece' => 'melo-noir', 'taille' => 'S', 'quantite' => 1]],
-            'nom' => 'Awa', 'telephone' => '0700000001', 'quartier' => 'Riviera', 'commune' => 'Cocody',
+            'nom' => 'Awa', 'telephone' => '0700000001', 'email' => 'awa@example.test', 'quartier' => 'Riviera', 'commune' => 'Cocody',
         ]);
 
         $this->delete('/admin/pieces/1');
@@ -118,7 +118,9 @@ class AdminTest extends TestCase
             'nom' => 'Awa Koné', 'telephone' => '0700000001', 'email' => $email, 'quartier' => 'Riviera', 'commune' => 'Cocody',
         ])->assertCreated();
         $commande('awa@example.test');
-        $commande(null); // sans e-mail : relance par WhatsApp seulement
+        $commande('ancien@example.test');
+        // commande passée avant que l'e-mail soit obligatoire : relance par WhatsApp seulement
+        Precommande::where('email', 'ancien@example.test')->update(['email' => null]);
 
         $this->get('/admin')->assertOk()->assertSee('En attente de paiement')->assertSee('Relancer tout le monde par e-mail (1)')->assertSee('wa.me/2250700000001', false);
 

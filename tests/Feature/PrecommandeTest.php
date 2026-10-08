@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\Statut;
 use App\Mail\CaptureRecue;
 use App\Mail\NouvellePrecommande;
-use App\Mail\PrecommandeRecue;
+use App\Mail\PaiementValide;
 use App\Models\Precommande;
 use App\Models\Stock;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,7 +28,7 @@ class PrecommandeTest extends TestCase
 
     private function client(array $plus = []): array
     {
-        return $plus + ['nom' => 'Favor', 'telephone' => '0700235034', 'quartier' => 'Palmeraie', 'commune' => 'Cocody'];
+        return $plus + ['nom' => 'Favor', 'telephone' => '0700235034', 'email' => 'favor@example.test', 'quartier' => 'Palmeraie', 'commune' => 'Cocody'];
     }
 
     private function commande(array $articles, array $client = []): TestResponse
@@ -50,14 +50,16 @@ class PrecommandeTest extends TestCase
         Mail::fake();
         config(['services.precommandes.notification_email' => 'equipe@example.test']);
 
-        $r = $this->commande([['piece' => 'melo-noir', 'taille' => 'M', 'quantite' => 2]])->assertCreated()
+        $r = $this->commande([['piece' => 'melo-noir', 'taille' => 'M', 'quantite' => 2]], ['email' => 'favor@example.test'])->assertCreated()
             ->assertJsonPath('total', 25000)
             ->assertJsonPath('adresse', 'Palmeraie, Cocody (Abidjan)');
 
         $this->assertMatchesRegularExpression('/^TEF-[A-Z]{5}$/', $r->json('reference'));
         $this->assertSame(38, $this->stock('melo-noir', 'M'));
         Mail::assertSent(NouvellePrecommande::class, fn ($m) => $m->hasTo('equipe@example.test'));
-        Mail::assertNotSent(PrecommandeRecue::class); // pas d'e-mail client : il est facultatif
+        // rien au client tant que le paiement n'est pas validé (même s'il a donné son e-mail)
+        Mail::assertNotSent(PaiementValide::class);
+        Mail::assertNotSent(\Illuminate\Mail\Mailable::class, fn ($m) => $m->hasTo('favor@example.test'));
     }
 
     public function test_modifier_mes_coordonnees_met_a_jour_sans_dupliquer(): void
@@ -146,5 +148,12 @@ class PrecommandeTest extends TestCase
         Mail::assertSent(\App\Mail\PaiementValide::class, fn ($m) => $m->hasTo('favor@example.test'));
         Mail::assertSent(\App\Mail\PaiementValideEquipe::class, count($equipe));
         Mail::assertNotSent(\App\Mail\PaiementValideEquipe::class, fn ($m) => $m->hasTo('admin3@example.test'));
+    }
+
+    public function test_l_e_mail_est_obligatoire(): void
+    {
+        $this->postJson('/api/precommandes', ['articles' => [['piece' => 'melo-noir', 'taille' => 'M', 'quantite' => 1]], 'nom' => 'Favor', 'telephone' => '0700235034', 'quartier' => 'Palmeraie', 'commune' => 'Cocody'])
+            ->assertStatus(400)->assertJson(['erreur' => 'Indique ton e-mail : on y envoie la confirmation de ta précommande.']);
+        $this->assertSame(0, Precommande::count());
     }
 }

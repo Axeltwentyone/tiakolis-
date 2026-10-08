@@ -179,6 +179,10 @@
           <span class="font-display text-[32px] uppercase">Total</span>
           <span data-total class="font-display text-[32px] tabular-nums"></span>
         </div>
+        <p class="flex items-center gap-3 rounded-md bg-rouge px-4 py-3 text-[15px] leading-snug font-bold text-creme">
+          <span class="grid size-7 shrink-0 place-items-center rounded-full bg-creme font-display text-lg text-rouge" aria-hidden="true">!</span>
+          Paiement Wave obligatoire pour valider ta précommande.
+        </p>
         <button type="button" data-vers="infos" class="h-14 w-full rounded-md bg-nuit text-sm font-bold tracking-[.22em] text-creme uppercase transition hover:bg-rouge">Valider la commande</button>
       </footer>
     </div>
@@ -197,8 +201,8 @@
             <input name="telephone" type="tel" required maxlength="30" autocomplete="tel" inputmode="tel" class="h-12 min-w-0 rounded-lg border-2 border-nuit/20 bg-[#fffaf3] px-4 text-lg focus:border-nuit focus:outline-none">
           </label>
           <label class="grid gap-2">
-            <span class="text-xs font-bold tracking-[.18em] uppercase">E-mail (facultatif)</span>
-            <input name="email" type="email" maxlength="120" autocomplete="email" class="h-12 min-w-0 rounded-lg border-2 border-nuit/20 bg-[#fffaf3] px-4 text-lg focus:border-nuit focus:outline-none">
+            <span class="text-xs font-bold tracking-[.18em] uppercase">E-mail</span>
+            <input name="email" type="email" required maxlength="120" autocomplete="email" inputmode="email" class="h-12 min-w-0 rounded-lg border-2 border-nuit/20 bg-[#fffaf3] px-4 text-lg focus:border-nuit focus:outline-none">
           </label>
         </div>
         <label class="grid gap-2">
@@ -235,6 +239,7 @@
     <div data-etape="paiement" hidden class="flex min-h-0 flex-1 flex-col">
       <div class="min-h-0 flex-1 overflow-y-auto px-5 pt-7 pb-6">
         <h2 class="font-display text-[44px] leading-none uppercase">Paiement Wave</h2>
+        <p class="mt-3 inline-flex rounded-full bg-rouge px-3 py-1.5 text-[11px] font-bold tracking-[.16em] text-creme uppercase">Paiement obligatoire</p>
         <div class="mt-6 rounded-xl border-2 border-nuit/15 bg-[#fffaf3] px-6 py-5">
           <p class="text-xs font-bold tracking-[.2em] uppercase">Commande <span data-ref></span></p>
           <div id="pc-recap" class="mt-2 grid gap-1 text-[17px]"></div>
@@ -259,7 +264,7 @@
           <p class="text-sm font-semibold" data-etat>Envoi de ta capture…</p>
         </div>
         <p id="pc-erreur-capture" role="alert" class="mt-4 hidden rounded-lg bg-rouge/10 px-4 py-3 text-sm font-semibold text-rouge"></p>
-        <p class="mt-6 text-[15px] leading-snug text-nuit/70">Ta commande est confirmée dès qu'on reçoit ta capture. On te répond sur le <span data-tel></span> pour caler la livraison. Le montant Wave couvre uniquement tes pièces : la course Yango se paie au livreur à la réception.</p>
+        <p class="mt-6 text-[15px] leading-snug text-nuit/70"><strong class="text-nuit">Sans paiement, ta précommande n'est pas validée.</strong> Elle est confirmée dès qu'on reçoit ta capture, et on te répond sur le <span data-tel></span> pour caler la livraison. Le montant Wave couvre tes pièces : les frais de livraison Yango se règlent au livreur à la réception.</p>
       </div>
       <footer class="grid gap-3 border-t-2 border-nuit px-5 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+14px)]">
         <label id="pc-envoyer" class="flex h-14 w-full cursor-pointer items-center justify-center rounded-md bg-[#25d366] px-3 text-center text-[13px] font-bold tracking-[.16em] whitespace-nowrap text-nuit uppercase transition hover:brightness-95 has-[:disabled]:cursor-wait has-[:disabled]:opacity-60 min-[400px]:text-sm min-[400px]:tracking-[.22em]">

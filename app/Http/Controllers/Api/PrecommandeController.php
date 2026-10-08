@@ -6,7 +6,6 @@ use App\Enums\Statut;
 use App\Http\Controllers\Controller;
 use App\Mail\CaptureRecue;
 use App\Mail\NouvellePrecommande;
-use App\Mail\PrecommandeRecue;
 use App\Models\Precommande;
 use App\Models\Produit;
 use App\Models\Stock;
@@ -71,9 +70,7 @@ class PrecommandeController extends Controller
         }
 
         RateLimiter::hit($cle, self::FENETRE);
-        if ($p->email) {
-            Courrier::envoyer($p->email, new PrecommandeRecue($p), $p->reference);
-        }
+        // pas d'e-mail au client ici : il reçoit sa confirmation seulement quand le paiement est validé (PaiementValide)
         Courrier::envoyerEquipe(new NouvellePrecommande($p), $p->reference);
 
         return response()->json($this->resume($p) + ['jeton' => $jeton], 201);
@@ -149,7 +146,7 @@ class PrecommandeController extends Controller
             'articles.*.quantite' => ['required', 'integer', 'min:1', 'max:'.self::QUANTITE_MAX],
             'nom' => ['required', 'string', 'min:2', 'max:80'],
             'telephone' => ['required', 'string', 'max:30', 'regex:/^\+?[\d\s().-]{8,}$/'],
-            'email' => ['nullable', 'email', 'max:120'],
+            'email' => ['required', 'email', 'max:120'],
             'commune' => ['required', Rule::in(Precommande::COMMUNES)],
             'quartier' => ['required', 'string', 'min:2', 'max:120'],
             'note_client' => ['nullable', 'string', 'max:500'],
@@ -161,6 +158,7 @@ class PrecommandeController extends Controller
             'articles.*.quantite.*' => 'La quantité doit être entre 1 et '.self::QUANTITE_MAX.'.',
             'nom.*' => 'Indique ton prénom et ton nom.',
             'telephone.*' => 'Indique un numéro WhatsApp valide.',
+            'email.required' => 'Indique ton e-mail : on y envoie la confirmation de ta précommande.',
             'email.*' => 'Adresse e-mail invalide.',
             'commune.*' => 'Choisis ta commune à Abidjan.',
             'quartier.*' => 'Indique ton quartier et un repère pour le livreur.',
@@ -175,7 +173,7 @@ class PrecommandeController extends Controller
         $client = [
             'nom' => $propre($d['nom']),
             'telephone' => $propre($d['telephone']),
-            'email' => filled($d['email'] ?? null) ? mb_strtolower(trim($d['email'])) : null,
+            'email' => mb_strtolower(trim($d['email'])),
             'commune' => $d['commune'],
             'quartier' => $propre($d['quartier']),
             'note_client' => filled($d['note_client'] ?? null) ? trim($d['note_client']) : null,

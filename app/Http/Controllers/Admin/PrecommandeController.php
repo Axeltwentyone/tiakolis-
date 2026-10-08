@@ -50,7 +50,7 @@ class PrecommandeController extends Controller
         $precommande->update($request->validate([
             'nom' => ['required', 'string', 'min:2', 'max:80'],
             'telephone' => ['required', 'string', 'max:30'],
-            'email' => ['nullable', 'email', 'max:120'],
+            'email' => ['required', 'email', 'max:120'],
             'commune' => ['required', Rule::in(Precommande::COMMUNES)],
             'quartier' => ['required', 'string', 'min:2', 'max:120'],
             'note' => ['nullable', 'string', 'max:2000'],
