@@ -42,7 +42,9 @@ class PrecommandeTest extends TestCase
         $this->getJson('/api/catalogue')->assertOk()
             ->assertJsonPath('pieces.0.stock.M', 40)
             ->assertJsonPath('communes.5', 'Cocody')
-            ->assertJsonPath('paiement.wave', '+225 07 88 11 72 61');
+            ->assertJsonPath('paiement.wave', '+225 07 88 11 72 61')
+            ->assertJsonPath('paiement.lien', 'https://pay.wave.com/m/M_ci_3gSXyQLySdf3/c/ci/?amount={montant}')
+            ->assertJsonPath('paiement.om', fn ($om) => str_starts_with($om, 'https://multi.app.orange-money.com/') && str_ends_with($om, 'amount={montant}'));
     }
 
     public function test_une_commande_reserve_le_stock_et_previent_l_equipe(): void

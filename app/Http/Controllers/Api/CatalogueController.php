@@ -37,7 +37,7 @@ class CatalogueController extends Controller
             'tailles' => Produit::TAILLES,
             'pieces' => $pieces,
             'communes' => Precommande::COMMUNES,
-            'paiement' => ['wave' => $c['wave_numero'], 'lien' => $c['wave_lien'] ?: null, 'whatsapp' => $c['whatsapp_numero']],
+            'paiement' => ['wave' => $c['wave_numero'], 'lien' => $c['wave_lien'] ?: null, 'om' => $c['om_lien'] ?: null, 'whatsapp' => $c['whatsapp_numero']],
         ])
             ->header('Cache-Control', 'no-store'); // le stock bouge : jamais en cache
     }

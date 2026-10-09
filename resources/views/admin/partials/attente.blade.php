@@ -3,7 +3,7 @@
     <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
             <h2 class="font-display text-3xl uppercase">En attente de paiement <span class="text-terre">{{ $nbAttente }}</span></h2>
-            <p class="text-sm opacity-60">Commandes passées sans capture Wave. Les pièces restent réservées : relance les clients, ou annule la commande pour remettre les pièces en vente.</p>
+            <p class="text-sm opacity-60">Commandes passées sans capture de paiement. Les pièces restent réservées : relance les clients, ou annule la commande pour remettre les pièces en vente.</p>
         </div>
         @if ($nbAttente)
             <form method="post" action="{{ route('admin.precommandes.relancer-tous') }}">
@@ -16,7 +16,7 @@
     @if ($attente->isEmpty())
         <div class="grid place-items-center gap-1 rounded-2xl border-2 border-dashed border-nuit/20 px-6 py-10 text-center">
             <p class="font-display text-2xl uppercase">Personne à relancer</p>
-            <p class="text-sm opacity-60">Toutes les commandes ont envoyé leur capture Wave.</p>
+            <p class="text-sm opacity-60">Toutes les commandes ont envoyé leur capture de paiement.</p>
         </div>
     @else
         <div class="grid gap-2">

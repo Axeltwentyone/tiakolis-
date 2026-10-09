@@ -56,7 +56,7 @@
                     </select>
                     @include('admin.partials.statut', ['statut' => $p->statut])
                     @if ($p->capture)
-                        <a href="{{ route('admin.precommandes.show', $p) }}#capture" title="Capture Wave reçue" class="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#1dc4f0] ring-2 ring-nuit/10"><img src="{{ route('admin.precommandes.capture', $p) }}" alt="Capture Wave" class="size-full object-cover"></a>
+                        <a href="{{ route('admin.precommandes.show', $p) }}#capture" title="Capture de paiement reçue" class="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#1dc4f0] ring-2 ring-nuit/10"><img src="{{ route('admin.precommandes.capture', $p) }}" alt="Capture Wave" class="size-full object-cover"></a>
                     @endif
                 </form>
             </article>

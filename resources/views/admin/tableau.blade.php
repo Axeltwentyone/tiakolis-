@@ -8,7 +8,7 @@
         <a href="{{ route('admin.precommandes.index', ['statut' => 'a_verifier']) }}" class="carte group bg-ocre! transition hover:-translate-y-0.5">
             <p class="surtitre opacity-80!">Paiements à vérifier</p>
             <p class="mt-3 font-display text-6xl leading-none tabular-nums">{{ $aVerifier }}</p>
-            <p class="mt-2 text-sm font-semibold">capture{{ $aVerifier > 1 ? 's' : '' }} Wave reçue{{ $aVerifier > 1 ? 's' : '' }} →</p>
+            <p class="mt-2 text-sm font-semibold">capture{{ $aVerifier > 1 ? 's' : '' }} de paiement reçue{{ $aVerifier > 1 ? 's' : '' }} →</p>
         </a>
         <a href="{{ route('admin.precommandes.index') }}" class="carte transition hover:-translate-y-0.5">
             <p class="surtitre">Commandes</p>

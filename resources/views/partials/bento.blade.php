@@ -57,7 +57,7 @@
     @endif
     <ul class="bento__chips">
       <li>Choisis ta pièce</li>
-      <li>Paie avec Wave</li>
+      <li>Paie avec Wave ou Orange Money</li>
       <li>Livré par Yango</li>
     </ul>
   </div>

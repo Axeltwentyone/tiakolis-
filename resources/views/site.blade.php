@@ -143,7 +143,7 @@
 @endphp
 <script>window.MEDIAS = @json($mediasJs);</script>
 
-<!-- ============ 4. PANIER — tiroir latéral : 1 panier → 2 coordonnées → 3 paiement Wave (+ capture) ============ -->
+<!-- ============ 4. PANIER — tiroir latéral : 1 panier → 2 coordonnées → 3 paiement Wave / Orange Money (+ capture) ============ -->
 <dialog id="tiroir" aria-labelledby="tiroir-titre" class="tiroir scheme-light fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-full max-w-[480px] bg-creme p-0 text-nuit shadow-[-20px_0_60px_rgba(13,9,7,.35)] backdrop:bg-nuit/60 backdrop:backdrop-blur-[2px]">
   <div class="flex h-full flex-col">
     <header class="flex items-center justify-between gap-4 border-b-2 border-nuit px-5 pt-[calc(env(safe-area-inset-top,0px)+14px)] pb-3">
@@ -167,7 +167,7 @@
             <span class="mt-1 size-5 shrink-0 rounded-full bg-rouge ring-4 ring-rouge/20" aria-hidden="true"></span>
             <span>
               <span class="block text-lg leading-tight">Précommande & livraison</span>
-              <span class="mt-1.5 block text-[15px] leading-snug text-nuit/70">Le paiement de votre précommande s’effectue uniquement via Wave, avant la livraison. La livraison est assurée par Yango et les frais, variables selon votre commune, sont à régler directement au livreur le jour de la réception.</span>
+              <span class="mt-1.5 block text-[15px] leading-snug text-nuit/70">Le paiement de votre précommande s’effectue uniquement via Wave ou Orange Money, avant la livraison. La livraison est assurée par Yango et les frais, variables selon votre commune, sont à régler directement au livreur le jour de la réception.</span>
             </span>
           </label>
         </div>
@@ -181,7 +181,7 @@
         </div>
         <p class="flex items-center gap-3 rounded-md bg-rouge px-4 py-3 text-[15px] leading-snug font-bold text-creme">
           <span class="grid size-7 shrink-0 place-items-center rounded-full bg-creme font-display text-lg text-rouge" aria-hidden="true">!</span>
-          Paiement Wave obligatoire pour valider ta précommande.
+          Paiement obligatoire pour valider ta précommande (Wave ou Orange Money).
         </p>
         <button type="button" data-vers="infos" class="h-14 w-full rounded-md bg-nuit text-sm font-bold tracking-[.22em] text-creme uppercase transition hover:bg-rouge">Valider la commande</button>
       </footer>
@@ -230,32 +230,42 @@
           <span class="font-display text-[32px] uppercase">Total</span>
           <span data-total class="font-display text-[32px] tabular-nums"></span>
         </div>
-        <button type="submit" class="h-14 w-full rounded-md bg-nuit text-sm font-bold tracking-[.22em] text-creme uppercase transition hover:bg-rouge disabled:cursor-wait disabled:opacity-50">Passer au paiement Wave</button>
+        <button type="submit" class="h-14 w-full rounded-md bg-nuit text-sm font-bold tracking-[.22em] text-creme uppercase transition hover:bg-rouge disabled:cursor-wait disabled:opacity-50">Passer au paiement</button>
         <button type="button" data-vers="panier" class="justify-self-start px-3 py-1 text-[17px] font-semibold underline underline-offset-4">← Retour au panier</button>
       </footer>
     </form>
 
-    <!-- Étape 3 : paiement Wave + envoi de la capture -->
+    <!-- Étape 3 : paiement (Wave ou Orange Money) + envoi de la capture -->
     <div data-etape="paiement" hidden class="flex min-h-0 flex-1 flex-col">
       <div class="min-h-0 flex-1 overflow-y-auto px-5 pt-7 pb-6">
-        <h2 class="font-display text-[44px] leading-none uppercase">Paiement Wave</h2>
+        <h2 class="font-display text-[44px] leading-none uppercase">Paiement</h2>
         <p class="mt-3 inline-flex rounded-full bg-rouge px-3 py-1.5 text-[11px] font-bold tracking-[.16em] text-creme uppercase">Paiement obligatoire</p>
         <div class="mt-6 rounded-xl border-2 border-nuit/15 bg-[#fffaf3] px-6 py-5">
           <p class="text-xs font-bold tracking-[.2em] uppercase">Commande <span data-ref></span></p>
           <div id="pc-recap" class="mt-2 grid gap-1 text-[17px]"></div>
         </div>
-        <div class="mt-5 rounded-xl bg-[#1dc4f0] px-6 py-6">
-          <p class="text-xs font-bold tracking-[.2em] uppercase">Montant à envoyer</p>
+        <!-- montant + boutons de paiement (liens marchands Wave et Orange Money, montant rempli automatiquement) -->
+        <div class="mt-5 rounded-xl bg-nuit px-6 py-6 text-creme">
+          <p class="text-xs font-bold tracking-[.2em] uppercase opacity-70">Montant à payer</p>
           <p data-montant class="mt-2 font-display text-[56px] leading-none tabular-nums"></p>
-          <p class="mt-5 text-xs font-bold tracking-[.2em] uppercase">Numéro Wave</p>
-          <div class="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">
-            <span data-wave class="text-[28px] font-bold tabular-nums"></span>
-            <button type="button" id="pc-copier" class="rounded-full border-2 border-nuit px-5 py-1.5 text-xs font-bold tracking-[.18em] uppercase transition hover:bg-nuit hover:text-[#1dc4f0]">Copier</button>
+          <div class="mt-5 grid gap-3">
+            <a id="pc-lien-wave" hidden target="_blank" rel="noopener" class="flex h-14 items-center justify-between gap-3 rounded-lg bg-[#1dc4f0] px-5 text-nuit transition hover:brightness-105">
+              <span class="text-[15px] font-bold tracking-[.12em] uppercase">Payer avec Wave</span><span class="text-xl" aria-hidden="true">↗</span>
+            </a>
+            <a id="pc-lien-om" hidden target="_blank" rel="noopener" class="flex h-14 items-center justify-between gap-3 rounded-lg bg-[#ff7900] px-5 text-nuit transition hover:brightness-105">
+              <span class="text-[15px] font-bold tracking-[.12em] uppercase">Payer avec Orange Money</span><span class="text-xl" aria-hidden="true">↗</span>
+            </a>
           </div>
-          <a id="pc-lien-wave" hidden target="_blank" rel="noopener" class="mt-5 flex h-12 items-center justify-center rounded-md bg-nuit text-xs font-bold tracking-[.2em] text-creme uppercase">Payer avec l'application Wave ↗</a>
+          <div id="pc-numero" class="mt-5 border-t border-creme/15 pt-4">
+            <p class="text-[13px] opacity-70">Le lien ne s'ouvre pas ? Envoie le montant au numéro Wave :</p>
+            <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <span data-wave class="text-[22px] font-bold tabular-nums"></span>
+              <button type="button" id="pc-copier" class="rounded-full border-2 border-creme/40 px-4 py-1 text-xs font-bold tracking-[.18em] uppercase transition hover:bg-creme hover:text-nuit">Copier</button>
+            </div>
+          </div>
         </div>
         <ol class="mt-6 grid list-decimal gap-3 pl-6 text-[19px] leading-snug">
-          <li>Ouvre ton application <strong>Wave</strong> et envoie <strong data-montant></strong> au <strong data-wave></strong>.</li>
+          <li>Touche <strong>Wave</strong> ou <strong>Orange Money</strong> et paie <strong data-montant></strong>.</li>
           <li>Fais une <strong>capture d'écran</strong> de la confirmation de paiement.</li>
           <li>Envoie ta capture avec le <strong>bouton vert</strong> ci-dessous : elle arrive directement chez nous avec ton numéro de commande <strong data-ref></strong>.</li>
         </ol>
@@ -264,11 +274,11 @@
           <p class="text-sm font-semibold" data-etat>Envoi de ta capture…</p>
         </div>
         <p id="pc-erreur-capture" role="alert" class="mt-4 hidden rounded-lg bg-rouge/10 px-4 py-3 text-sm font-semibold text-rouge"></p>
-        <p class="mt-6 text-[15px] leading-snug text-nuit/70"><strong class="text-nuit">Sans paiement, ta précommande n'est pas validée.</strong> Elle est confirmée dès qu'on reçoit ta capture, et on te répond sur le <span data-tel></span> pour caler la livraison. Le montant Wave couvre tes pièces : les frais de livraison Yango se règlent au livreur à la réception.</p>
+        <p class="mt-6 text-[15px] leading-snug text-nuit/70"><strong class="text-nuit">Sans paiement, ta précommande n'est pas validée.</strong> Elle est confirmée dès qu'on reçoit ta capture, et on te répond sur le <span data-tel></span> pour caler la livraison. Le paiement couvre tes pièces : les frais de livraison Yango se règlent au livreur à la réception.</p>
       </div>
       <footer class="grid gap-3 border-t-2 border-nuit px-5 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+14px)]">
         <label id="pc-envoyer" class="flex h-14 w-full cursor-pointer items-center justify-center rounded-md bg-[#25d366] px-3 text-center text-[13px] font-bold tracking-[.16em] whitespace-nowrap text-nuit uppercase transition hover:brightness-95 has-[:disabled]:cursor-wait has-[:disabled]:opacity-60 min-[400px]:text-sm min-[400px]:tracking-[.22em]">
-          Envoyer ma capture Wave
+          Envoyer ma capture de paiement
           <input id="pc-capture" type="file" accept="image/*" class="sr-only">
         </label>
         <div class="flex flex-wrap items-center justify-between gap-2">
@@ -281,7 +291,7 @@
     <!-- Étape 4 : merci -->
     <div data-etape="merci" hidden class="flex flex-1 flex-col justify-end gap-5 bg-nuit px-6 pt-10 pb-[calc(env(safe-area-inset-bottom,0px)+28px)] text-creme" tabindex="-1">
       <p class="font-display text-[64px] leading-[.9] uppercase">Merci,<br>c'est reçu.</p>
-      <p class="text-lg opacity-80">On vérifie ton paiement Wave et on te confirme ta commande <strong data-ref class="font-display text-2xl tracking-wide text-ocre"></strong> sur WhatsApp au <span data-tel></span> pour caler la livraison.</p>
+      <p class="text-lg opacity-80">On vérifie ton paiement et on te confirme ta commande <strong data-ref class="font-display text-2xl tracking-wide text-ocre"></strong> sur WhatsApp au <span data-tel></span> pour caler la livraison.</p>
       <button type="button" data-ferme class="h-14 rounded-md bg-creme text-sm font-bold tracking-[.22em] text-nuit uppercase transition hover:bg-ocre">Continuer à regarder</button>
     </div>
   </div>

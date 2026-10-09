@@ -12,16 +12,16 @@
 
     <div class="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <div class="grid content-start gap-6">
-            {{-- Paiement Wave : la capture envoyée par le client --}}
+            {{-- Paiement (Wave ou Orange Money) : la capture envoyée par le client --}}
             <section id="capture" class="carte">
                 <div class="flex flex-wrap items-baseline justify-between gap-2">
-                    <h2 class="font-display text-2xl uppercase">Paiement Wave</h2>
+                    <h2 class="font-display text-2xl uppercase">Paiement</h2>
                     <p class="font-display text-3xl tabular-nums">{{ fcfa($p->total) }}</p>
                 </div>
                 @if ($p->capture)
-                    <p class="mt-1 text-sm opacity-60">Capture reçue {{ $p->capture_le?->locale('fr')->isoFormat('[le] D MMMM [à] HH:mm') }}. Vérifie dans Wave que tu as bien reçu {{ fcfa($p->total) }}.</p>
+                    <p class="mt-1 text-sm opacity-60">Capture reçue {{ $p->capture_le?->locale('fr')->isoFormat('[le] D MMMM [à] HH:mm') }}. Vérifie dans Wave ou Orange Money que tu as bien reçu {{ fcfa($p->total) }}.</p>
                     <a href="{{ route('admin.precommandes.capture', $p) }}" target="_blank" class="group mt-4 block overflow-hidden rounded-2xl bg-[#1dc4f0] p-3">
-                        <img src="{{ route('admin.precommandes.capture', $p) }}" alt="Capture du paiement Wave de {{ $p->nom }}" class="mx-auto max-h-[70vh] w-auto rounded-xl bg-white shadow-lg">
+                        <img src="{{ route('admin.precommandes.capture', $p) }}" alt="Capture du paiement de {{ $p->nom }}" class="mx-auto max-h-[70vh] w-auto rounded-xl bg-white shadow-lg">
                         <span class="mt-3 block text-center text-xs font-bold tracking-[.14em] text-nuit uppercase group-hover:underline">Ouvrir en grand ↗</span>
                     </a>
                     @if ($p->statut === \App\Enums\Statut::AVerifier)
@@ -34,7 +34,7 @@
                 @else
                     <div class="mt-4 rounded-2xl border-2 border-dashed border-nuit/20 px-5 py-8 text-center">
                         <p class="font-semibold">Pas encore de capture</p>
-                        <p class="mt-1 text-sm opacity-60">Le client doit envoyer {{ fcfa($p->total) }} sur Wave puis sa capture. Elle apparaîtra ici et tu recevras un e-mail.</p>
+                        <p class="mt-1 text-sm opacity-60">Le client doit envoyer {{ fcfa($p->total) }} par Wave ou Orange Money puis sa capture. Elle apparaîtra ici et tu recevras un e-mail.</p>
                         @if ($p->modifiable())
                             <p class="mt-3 text-xs opacity-60">{{ $p->relances ? 'Relancé '.$p->relances.' fois, la dernière '.$p->relance_le?->locale('fr')->diffForHumans() : 'Jamais relancé' }}</p>
                             <div class="mt-3 flex flex-wrap justify-center gap-2">
@@ -80,7 +80,7 @@
                 <div class="mt-5 grid gap-1 border-t-2 border-nuit pt-4">
                     <div class="flex items-baseline justify-between text-sm"><span>Livraison</span><span>Course Yango payée au livreur</span></div>
                     <div class="flex items-baseline justify-between">
-                        <span class="text-xs font-bold tracking-[.14em] uppercase">Total Wave</span>
+                        <span class="text-xs font-bold tracking-[.14em] uppercase">Total payé</span>
                         <span class="font-display text-4xl tabular-nums">{{ fcfa($p->total) }}</span>
                     </div>
                 </div>

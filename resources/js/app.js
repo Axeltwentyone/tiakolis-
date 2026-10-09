@@ -4,7 +4,7 @@
    ========================================================= */
 let PIECES = [];               // [{id, type, nom, couleur, prix, face, dos, stock:{S:20,…}}]
 let TAILLES = ["S","M","L","XL"];
-let COMMUNES = [], PAIEMENT = {};  // communes d'Abidjan (livraison Yango) ; {wave, lien, whatsapp}
+let COMMUNES = [], PAIEMENT = {};  // communes d'Abidjan (livraison Yango) ; {wave, lien (Wave), om (Orange Money), whatsapp}
 const QMAX = 5;                // quantité max par ligne (idem PrecommandeController)
 const fcfa = n => n.toLocaleString("fr-FR").replace(/\s/g," ")+" FCFA";
 const piece = id => PIECES.find(p=>p.id===id);
@@ -264,7 +264,7 @@ const collection = (function(){
   };
 })();
 
-/* ---------- 4. Tiroir panier : panier → coordonnées → paiement Wave (+ capture) → merci ----------
+/* ---------- 4. Tiroir panier : panier → coordonnées → paiement Wave / Orange Money (+ capture) → merci ----------
    La commande est créée en passant au paiement (stock réservé) ; « Modifier mes coordonnées » la met à jour au lieu
    d'en créer une autre. Elle est gardée dans le navigateur jusqu'à l'envoi de la capture. */
 const tiroir = (function(){
@@ -388,7 +388,7 @@ const tiroir = (function(){
     return {ok:res.ok,status:res.status,json:await res.json().catch(()=>({}))};
   }
 
-  /* ----- Étape 3 : paiement Wave ----- */
+  /* ----- Étape 3 : paiement (liens marchands Wave et Orange Money, montant de la commande) ----- */
   const chiffres=s=>(s||"").replace(/\D/g,"");
   function rendPaiement(){
     if(!commande) return etape("panier");
@@ -398,9 +398,11 @@ const tiroir = (function(){
     $$("[data-tel]").forEach(e=>e.textContent=commande.telephone);
     document.getElementById("pc-recap").innerHTML=
       commande.lignes.map(l=>`<p>${l.quantite} × ${l.libelle} (${l.taille})</p>`).join("")+`<p>Livraison Yango à ${commande.adresse}</p>`;
-    const lien=document.getElementById("pc-lien-wave");
-    lien.hidden=!PAIEMENT.lien; if(PAIEMENT.lien) lien.href=PAIEMENT.lien.replace("{montant}",commande.total);
-    const msg=`Bonjour ! Voici la capture de mon paiement Wave de ${fcfa(commande.total)} pour la commande ${commande.reference}.`;
+    for(const [id,url] of [["pc-lien-wave",PAIEMENT.lien],["pc-lien-om",PAIEMENT.om]]){
+      const a=document.getElementById(id); a.hidden=!url; if(url) a.href=url.replaceAll("{montant}",commande.total);
+    }
+    document.getElementById("pc-numero").hidden=!PAIEMENT.wave;
+    const msg=`Bonjour ! Voici la capture de mon paiement de ${fcfa(commande.total)} pour la commande ${commande.reference}.`;
     document.getElementById("pc-whatsapp").href=`https://wa.me/${chiffres(PAIEMENT.whatsapp)}?text=${encodeURIComponent(msg)}`;
     apercu.hidden=true; errCapture.classList.add("hidden");
   }

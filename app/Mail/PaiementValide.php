@@ -9,7 +9,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-/** Au client : son paiement Wave est validé, la précommande est confirmée. C'est le seul e-mail qu'il reçoit (rien avant le paiement). */
+/** Au client : son paiement (Wave ou Orange Money) est validé, la précommande est confirmée. C'est le seul e-mail qu'il reçoit (rien avant le paiement). */
 class PaiementValide extends Mailable
 {
     use Queueable, SerializesModels;

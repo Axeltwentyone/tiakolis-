@@ -40,8 +40,9 @@ return [
         'notification_email' => env('NOTIFICATION_EMAIL'),
         // paiement : le client envoie le montant sur ce numéro Wave, puis sa capture
         'wave_numero' => env('WAVE_NUMERO'),
-        // lien de paiement Wave (facultatif) ; {montant} est remplacé par le total de la commande
-        'wave_lien' => env('WAVE_LIEN'),
+        // liens de paiement marchands ; {montant} est remplacé par le total de la commande
+        'wave_lien' => env('WAVE_LIEN') ?: 'https://pay.wave.com/m/M_ci_3gSXyQLySdf3/c/ci/?amount={montant}',
+        'om_lien' => env('OM_LIEN') ?: 'https://multi.app.orange-money.com/app/v1/kapptivate/qrcode/odyssee/?id=codgen1-59b62a9429fb47b2b7a03c6deba31285&v=1&amount={montant}', // Orange Money business
         // numéro WhatsApp de la boutique (par défaut : le numéro Wave)
         'whatsapp_numero' => env('WHATSAPP_NUMERO') ?: env('WAVE_NUMERO'),
     ],

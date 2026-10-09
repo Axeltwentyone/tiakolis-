@@ -5,7 +5,7 @@
         <td style="background:#0d0907;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#f2a33a;">✓ Paiement reçu</td>
     </tr></table>
     <h1 class="display grand" style="margin:14px 0 0;font-family:Anton,Impact,'Arial Narrow Bold',sans-serif;font-size:54px;line-height:.95;font-weight:400;text-transform:uppercase;color:#0d0907;">C'est validé, {{ \Illuminate\Support\Str::of($p->nom)->explode(' ')->first() }}&nbsp;!</h1>
-    <p style="margin:18px 0 0;font-size:17px;">On a bien reçu ton paiement Wave de <strong>{{ fcfa($p->total) }}</strong>. Ta commande <strong>{{ $p->reference }}</strong> est confirmée : tes pièces sont à toi.</p>
+    <p style="margin:18px 0 0;font-size:17px;">On a bien reçu ton paiement de <strong>{{ fcfa($p->total) }}</strong>. Ta commande <strong>{{ $p->reference }}</strong> est confirmée : tes pièces sont à toi.</p>
 
     <div style="height:26px;line-height:26px;">&nbsp;</div>
     @include('mail.tk.articles')

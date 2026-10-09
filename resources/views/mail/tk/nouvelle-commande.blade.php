@@ -1,4 +1,4 @@
-@extends('mail.tk.layout', ['titre' => 'Nouvelle commande', 'bandeau' => 'Nouvelle commande', 'apercu' => "{$p->nom} vient de commander ({$p->reference}). Paiement Wave en attente."])
+@extends('mail.tk.layout', ['titre' => 'Nouvelle commande', 'bandeau' => 'Nouvelle commande', 'apercu' => "{$p->nom} vient de commander ({$p->reference}). Paiement en attente."])
 
 @section('contenu')
     <table role="presentation" cellpadding="0" cellspacing="0"><tr>
@@ -10,7 +10,7 @@
     <div style="height:22px;line-height:22px;">&nbsp;</div>
     @include('mail.tk.articles')
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-        <td class="display" style="padding:10px 0 0;font-family:Anton,Impact,'Arial Narrow Bold',sans-serif;font-size:26px;text-transform:uppercase;">À recevoir sur Wave</td>
+        <td class="display" style="padding:10px 0 0;font-family:Anton,Impact,'Arial Narrow Bold',sans-serif;font-size:26px;text-transform:uppercase;">À recevoir</td>
         <td align="right" class="display" style="padding:10px 0 0;font-family:Anton,Impact,'Arial Narrow Bold',sans-serif;font-size:26px;white-space:nowrap;">{{ fcfa($p->total) }}</td>
     </tr></table>
 

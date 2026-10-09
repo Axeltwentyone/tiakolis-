@@ -10,7 +10,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-/** À l'équipe : un client vient d'envoyer la capture de son paiement Wave (jointe au mail). */
+/** À l'équipe : un client vient d'envoyer la capture de son paiement Wave ou Orange Money (jointe au mail). */
 class CaptureRecue extends Mailable
 {
     use Queueable, SerializesModels;
@@ -21,7 +21,7 @@ class CaptureRecue extends Mailable
     {
         $p = $this->precommande;
 
-        return new Envelope(subject: 'Nouveau paiement Wave · '.fcfa($p->total)." · {$p->reference}");
+        return new Envelope(subject: 'Nouveau paiement · '.fcfa($p->total)." · {$p->reference}");
     }
 
     public function content(): Content
