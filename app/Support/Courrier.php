@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
+use function Illuminate\Support\defer;
+
 /** Envoi des e-mails : un échec est noté dans storage/logs/laravel.log mais ne bloque jamais une commande. */
 class Courrier
 {
@@ -30,10 +32,14 @@ class Courrier
 
     public static function envoyer(string $adresse, Mailable $mail, string $contexte): void
     {
-        try {
-            Mail::to($adresse)->send($mail);
-        } catch (Throwable $e) {
-            Log::error('E-mail non envoyé ('.class_basename($mail).") à {$adresse} pour {$contexte}", ['erreur' => $e->getMessage()]);
-        }
+        $envoi = function () use ($adresse, $mail, $contexte) {
+            try {
+                Mail::to($adresse)->send($mail);
+            } catch (Throwable $e) {
+                Log::error('E-mail non envoyé ('.class_basename($mail).") à {$adresse} pour {$contexte}", ['erreur' => $e->getMessage()]);
+            }
+        };
+        // sur le site : envoi APRÈS la réponse au client (il n'attend jamais le serveur mail) ; en console et en test : tout de suite
+        app()->runningInConsole() ? $envoi() : defer($envoi);
     }
 }

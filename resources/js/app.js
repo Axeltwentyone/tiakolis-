@@ -265,8 +265,8 @@ const collection = (function(){
 })();
 
 /* ---------- 4. Tiroir panier : panier → coordonnées → paiement Wave / Orange Money (+ capture) → merci ----------
-   La commande est créée en passant au paiement (stock réservé) ; « Modifier mes coordonnées » la met à jour au lieu
-   d'en créer une autre. Elle est gardée dans le navigateur jusqu'à l'envoi de la capture. */
+   Aucune précommande sans paiement : l'étape 2 vérifie seulement (coordonnées, stock, montant), rien n'est enregistré.
+   La précommande est créée à l'étape 3, quand le client envoie la capture de son paiement. */
 const tiroir = (function(){
   const $=s=>dlg.querySelector(s), $$=s=>dlg.querySelectorAll(s);
   const dlg=document.getElementById("tiroir"), form=document.getElementById("pc-form"), err=document.getElementById("pc-erreur"),
@@ -274,11 +274,12 @@ const tiroir = (function(){
         btn=form.querySelector("[type=submit]"), etapes=$$("[data-etape]"), nav=$$("[data-nav]"),
         fichier=document.getElementById("pc-capture"), apercu=document.getElementById("pc-apercu"), errCapture=document.getElementById("pc-erreur-capture");
   const ORDRE=["panier","infos","paiement","merci"];
-  const CLE_CMD="tk-commande", CLE_CLIENT="tk-client";
+  const CLE_CLIENT="tk-client";
   const lit=k=>{ try{ return JSON.parse(localStorage.getItem(k)); }catch{ return null; } };
   const ecrit=(k,v)=>{ try{ v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v)); }catch{} };
   const signature=()=>JSON.stringify(panier.lignes.map(l=>[l.piece,l.taille,l.quantite]));
-  let commande=lit(CLE_CMD); // {reference, jeton, total, lignes, adresse, telephone, signature}
+  try{ localStorage.removeItem("tk-commande"); }catch{} // ancien parcours (commande créée avant paiement)
+  let verif=null; // résultat de l'étape 2 : {total, lignes, adresse, telephone, donnees, signature} — rien n'est enregistré côté serveur
 
   function etape(nom){
     etapes.forEach(e=>e.hidden=e.dataset.etape!==nom);
@@ -288,10 +289,9 @@ const tiroir = (function(){
     const cible=dlg.querySelector(`[data-etape="${nom}"]`);
     (nom==="infos" ? form.nom : nom==="merci" ? cible : $("[data-ferme]")).focus({preventScroll:true});
   }
-  /** rouvrir le panier avec une commande en attente de paiement (même panier) : directement l'étape paiement */
   function ouvre(nom){
     if(!dlg.open) dlg.showModal();
-    etape(nom || (commande && panier.lignes.length && commande.signature===signature() ? "paiement" : "panier"));
+    etape(nom || "panier");
   }
   function ferme(){ dlg.close(); }
   dlg.addEventListener("close",()=>{ if(!$('[data-etape="merci"]').hidden) etape("panier"); });
@@ -365,44 +365,36 @@ const tiroir = (function(){
     data.articles=panier.lignes;
     btn.disabled=true;
     try{
-      let res;
-      if(commande){ // « Modifier mes coordonnées » ou panier modifié : on met à jour la même commande
-        res=await envoie(`/api/precommandes/${commande.reference}`,"PUT",data);
-        if(res.status===404 || (res.status===409 && res.json.erreur?.startsWith("Cette commande"))){ commande=null; ecrit(CLE_CMD,null); res=null; }
-      }
-      if(!res) res=await envoie("/api/precommandes","POST",data);
+      // vérification seulement : la précommande n'existe qu'une fois le paiement envoyé
+      const res=await fetch("/api/precommandes/verifier",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(data)});
+      const json=await res.json().catch(()=>({}));
       if(!res.ok){
         if(res.status===409) catalogue.charge().catch(()=>{}); // stock insuffisant : on montre ce qui reste
-        throw new Error(res.json.erreur||"Le serveur n'a pas pu enregistrer ta commande.");
+        throw new Error(json.erreur||"Vérifie tes informations et réessaie.");
       }
-      commande={...commande,...res.json,signature:signature()};
-      ecrit(CLE_CMD,commande);
-      catalogue.charge().catch(()=>{});
+      verif={...json,donnees:data,signature:signature()};
       etape("paiement");
     }catch(x){
       montre(x instanceof TypeError?"Connexion impossible. Réessaie dans un instant.":x.message);
     }finally{ btn.disabled=false; }
   });
-  async function envoie(url,method,data){
-    const res=await fetch(url,{method,headers:{"Content-Type":"application/json",Accept:"application/json",...(commande?{"X-Jeton":commande.jeton}:{})},body:JSON.stringify(data)});
-    return {ok:res.ok,status:res.status,json:await res.json().catch(()=>({}))};
-  }
 
-  /* ----- Étape 3 : paiement (liens marchands Wave et Orange Money, montant de la commande) ----- */
+  /* ----- Étape 3 : paiement (liens marchands Wave et Orange Money, montant vérifié à l'étape 2) ----- */
   const chiffres=s=>(s||"").replace(/\D/g,"");
   function rendPaiement(){
-    if(!commande) return etape("panier");
-    $$("[data-ref]").forEach(e=>e.textContent=commande.reference);
-    $$("[data-montant]").forEach(e=>e.textContent=fcfa(commande.total));
+    if(!verif) return etape("panier");
+    if(verif.signature!==signature()) return etape("infos"); // panier modifié depuis : on revérifie
+    $$("[data-montant]").forEach(e=>e.textContent=fcfa(verif.total));
     $$("[data-wave]").forEach(e=>e.textContent=PAIEMENT.wave||"");
-    $$("[data-tel]").forEach(e=>e.textContent=commande.telephone);
+    $$("[data-tel]").forEach(e=>e.textContent=verif.telephone);
     document.getElementById("pc-recap").innerHTML=
-      commande.lignes.map(l=>`<p>${l.quantite} × ${l.libelle} (${l.taille})</p>`).join("")+`<p>Livraison Yango à ${commande.adresse}</p>`;
+      verif.lignes.map(l=>`<p>${l.quantite} × ${l.libelle} (${l.taille})</p>`).join("")+`<p>Livraison Yango à ${verif.adresse}</p>`;
     for(const [id,url] of [["pc-lien-wave",PAIEMENT.lien],["pc-lien-om",PAIEMENT.om]]){
-      const a=document.getElementById(id); a.hidden=!url; if(url) a.href=url.replaceAll("{montant}",commande.total);
+      const a=document.getElementById(id); a.hidden=!url; if(url) a.href=url.replaceAll("{montant}",verif.total);
     }
     document.getElementById("pc-numero").hidden=!PAIEMENT.wave;
-    const msg=`Bonjour ! Voici la capture de mon paiement de ${fcfa(commande.total)} pour la commande ${commande.reference}.`;
+    const resume=verif.lignes.map(l=>`${l.quantite} × ${l.libelle} (${l.taille})`).join(", ");
+    const msg=`Bonjour ! J'ai payé ${fcfa(verif.total)} pour ma précommande : ${resume}. Livraison à ${verif.adresse}. Voici ma capture :`;
     document.getElementById("pc-whatsapp").href=`https://wa.me/${chiffres(PAIEMENT.whatsapp)}?text=${encodeURIComponent(msg)}`;
     apercu.hidden=true; errCapture.classList.add("hidden");
   }
@@ -425,17 +417,19 @@ const tiroir = (function(){
     }catch{ return f; }
   }
   fichier.addEventListener("change",async()=>{
-    const f=fichier.files[0]; if(!f || !commande) return;
+    const f=fichier.files[0]; if(!f || !verif) return;
     errCapture.classList.add("hidden");
     apercu.hidden=false; apercu.querySelector("img").src=URL.createObjectURL(f); apercu.querySelector("[data-etat]").textContent="Envoi de ta capture…";
     fichier.disabled=true;
     try{
-      const corps=new FormData(); corps.append("capture",await allege(f));
-      const res=await fetch(`/api/precommandes/${commande.reference}/capture`,{method:"POST",headers:{Accept:"application/json","X-Jeton":commande.jeton},body:corps});
+      // paiement envoyé → la précommande est créée maintenant (avec la capture)
+      const corps=new FormData(); corps.append("capture",await allege(f)); corps.append("donnees",JSON.stringify(verif.donnees));
+      const res=await fetch("/api/precommandes",{method:"POST",headers:{Accept:"application/json"},body:corps});
       const json=await res.json().catch(()=>({}));
       if(!res.ok) throw new Error(json.erreur||(res.status===413?"Image trop lourde.":"L'envoi a échoué. Réessaie."));
-      etape("merci"); // les infos de la commande restent affichées sur l'écran merci
-      commande=null; ecrit(CLE_CMD,null); panier.vide(); catalogue.charge().catch(()=>{});
+      $$("[data-ref]").forEach(e=>e.textContent=json.reference);
+      etape("merci");
+      verif=null; panier.vide(); catalogue.charge().catch(()=>{});
     }catch(x){
       apercu.hidden=true;
       errCapture.textContent=x instanceof TypeError?"Connexion impossible. Réessaie dans un instant.":x.message; errCapture.classList.remove("hidden");

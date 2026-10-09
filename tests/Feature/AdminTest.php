@@ -17,6 +17,12 @@ class AdminTest extends TestCase
 
     protected $seed = true;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Storage::fake('local'); // captures de paiement des commandes de test
+    }
+
     public function test_le_back_office_demande_une_connexion(): void
     {
         $this->get('/admin')->assertRedirect('/admin/connexion');
@@ -28,17 +34,14 @@ class AdminTest extends TestCase
         $user = User::factory()->create(['password' => 'secret-de-test']);
         $this->post('/admin/connexion', ['email' => $user->email, 'password' => 'secret-de-test'])->assertRedirect('/admin');
 
-        $this->postJson('/api/precommandes', [
-            'articles' => [['piece' => 'melo-noir', 'taille' => 'S', 'quantite' => 1]],
-            'nom' => 'Awa', 'telephone' => '0700000001', 'email' => 'awa@example.test', 'quartier' => 'Riviera', 'commune' => 'Cocody',
-        ])->assertCreated();
+        $this->precommander([['piece' => 'melo-noir', 'taille' => 'S', 'quantite' => 1]], ['nom' => 'Awa', 'telephone' => '0700000001', 'email' => 'awa@example.test', 'quartier' => 'Riviera'])->assertCreated();
         $ref = Precommande::first()->reference;
 
         $this->get('/admin')->assertOk()->assertSee($ref);
-        $this->get('/admin/precommandes?statut=en_attente&q=awa')->assertOk()->assertSee('Awa');
+        $this->get('/admin/precommandes?statut=a_verifier&q=awa')->assertOk()->assertSee('Awa');
         $this->get('/admin/precommandes?q='.$ref)->assertOk()->assertSee($ref);
-        $this->get('/admin/precommandes/1')->assertOk()->assertSee('Mélo Décalé · Noir')->assertSee('Pas encore de capture');
-        $this->get('/admin/precommandes/1/capture')->assertNotFound();
+        $this->get('/admin/precommandes/1')->assertOk()->assertSee('Mélo Décalé · Noir')->assertSee('Paiement reçu');
+        $this->get('/admin/precommandes/1/capture')->assertOk(); // la capture du paiement, visible une fois connecté
         $this->get('/admin/precommandes/export')->assertOk()->assertDownload();
         $this->get('/admin/pieces')->assertOk()->assertSee('Tiakolisé');
         $this->get('/admin/pieces/1/edit')->assertOk();
@@ -84,10 +87,7 @@ class AdminTest extends TestCase
     public function test_une_piece_deja_precommandee_ne_se_supprime_pas(): void
     {
         $this->actingAs(User::factory()->create());
-        $this->postJson('/api/precommandes', [
-            'articles' => [['piece' => 'melo-noir', 'taille' => 'S', 'quantite' => 1]],
-            'nom' => 'Awa', 'telephone' => '0700000001', 'email' => 'awa@example.test', 'quartier' => 'Riviera', 'commune' => 'Cocody',
-        ]);
+        $this->precommander([['piece' => 'melo-noir', 'taille' => 'S', 'quantite' => 1]], ['nom' => 'Awa', 'telephone' => '0700000001', 'email' => 'awa@example.test', 'quartier' => 'Riviera']);
 
         $this->delete('/admin/pieces/1');
         $this->assertNotNull(Produit::find(1));
@@ -113,13 +113,11 @@ class AdminTest extends TestCase
     {
         \Illuminate\Support\Facades\Mail::fake();
         $this->actingAs(User::factory()->create());
-        $commande = fn (?string $email) => $this->postJson('/api/precommandes', [
-            'articles' => [['piece' => 'melo-noir', 'taille' => 'S', 'quantite' => 1]],
-            'nom' => 'Awa Koné', 'telephone' => '0700000001', 'email' => $email, 'quartier' => 'Riviera', 'commune' => 'Cocody',
-        ])->assertCreated();
+        // commandes passées avec l'ancien parcours (avant que le paiement soit obligatoire) : en attente, sans capture
+        $commande = fn (string $email) => $this->precommander([['piece' => 'melo-noir', 'taille' => 'S', 'quantite' => 1]], ['nom' => 'Awa Koné', 'telephone' => '0700000001', 'email' => $email, 'quartier' => 'Riviera'])->assertCreated();
         $commande('awa@example.test');
         $commande('ancien@example.test');
-        // commande passée avant que l'e-mail soit obligatoire : relance par WhatsApp seulement
+        Precommande::query()->update(['statut' => 'en_attente', 'capture' => null, 'capture_le' => null]);
         Precommande::where('email', 'ancien@example.test')->update(['email' => null]);
 
         $this->get('/admin')->assertOk()->assertSee('En attente de paiement')->assertSee('Relancer tout le monde par e-mail (1)')->assertSee('wa.me/2250700000001', false);

@@ -13,7 +13,7 @@
             <tr><td style="padding:24px 26px;color:#f6efe4;">
                 <p style="margin:0;font-size:11px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;opacity:.75;">Montant à payer</p>
                 <p class="display" style="margin:8px 0 0;font-family:Anton,Impact,'Arial Narrow Bold',sans-serif;font-size:42px;line-height:1;">{{ fcfa($p->total) }}</p>
-                @foreach ([['Payer avec Wave', $lienWave, '#1dc4f0'], ['Payer avec Orange Money', $lienOm, '#ff7900']] as [$texte, $lien, $couleur])
+                @foreach ([['Payer avec Orange Money', $lienOm, '#ff7900'], ['Payer avec Wave', $lienWave, '#1dc4f0']] as [$texte, $lien, $couleur])
                     @if ($lien)
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr>
                             <td style="background:{{ $couleur }};border-radius:8px;"><a href="{{ $lien }}" style="display:block;padding:16px 20px;font-size:14px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#0d0907;text-decoration:none;">{{ $texte }} ↗</a></td>

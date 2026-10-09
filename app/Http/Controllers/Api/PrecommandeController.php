@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Enums\Statut;
 use App\Http\Controllers\Controller;
 use App\Mail\CaptureRecue;
-use App\Mail\NouvellePrecommande;
 use App\Models\Precommande;
 use App\Models\Produit;
 use App\Models\Stock;
@@ -21,10 +20,11 @@ use Illuminate\Validation\Rule;
 use RuntimeException;
 
 /**
- * Parcours du tiroir panier :
- *   1. POST /api/precommandes                       → crée la commande, réserve le stock, renvoie référence + jeton
- *   2. PUT  /api/precommandes/{reference}           → « Modifier mes coordonnées » (tant qu'aucune capture n'est envoyée)
- *   3. POST /api/precommandes/{reference}/capture   → capture du paiement Wave, visible dans le back office
+ * Parcours du tiroir panier — aucune précommande n'existe tant que le client n'a pas payé :
+ *   1. POST /api/precommandes/verifier   → vérifie coordonnées et stock, RIEN n'est enregistré (montant à payer)
+ *   2. le client paie (lien Wave ou Orange Money), puis envoie la capture de son paiement
+ *   3. POST /api/precommandes            → capture obligatoire : crée la précommande (« Capture à vérifier »),
+ *                                          réserve le stock, l'équipe reçoit l'e-mail « Nouveau paiement »
  */
 class PrecommandeController extends Controller
 {
@@ -32,114 +32,106 @@ class PrecommandeController extends Controller
 
     private const LIGNES_MAX = 10;
 
-    private const LIMITE = 5;          // commandes créées par IP…
+    private const LIMITE = 5;          // précommandes créées par IP…
 
     private const FENETRE = 10 * 60;   // …sur 10 minutes
 
-    public function store(Request $request): JsonResponse
+    /** Étape 2 → 3 : tout est-il bon (coordonnées, stock) ? Renvoie le récapitulatif et le montant à payer. */
+    public function verifier(Request $request): JsonResponse
     {
-        // pot de miel rempli = robot : on répond OK sans rien enregistrer
-        if ($request->filled('website')) {
-            return response()->json(['reference' => 'TEF-AAAAA', 'jeton' => Str::random(40), 'total' => 0], 201);
-        }
-
-        $cle = 'precommande:'.$request->ip();
-        if (RateLimiter::tooManyAttempts($cle, self::LIMITE)) {
-            return $this->erreur('Trop de commandes. Réessaie dans quelques minutes.', 429);
-        }
-
-        [$client, $demande, $erreur] = $this->valider($request);
+        [$client, $demande, $erreur] = $this->valider($request->all());
         if ($erreur) {
             return $erreur;
         }
 
-        $jeton = Str::random(40);
+        $total = 0;
+        $lignes = [];
+        foreach ($demande as $k => $quantite) {
+            [$slug, $taille] = explode('|', $k);
+            $produit = Produit::where('slug', $slug)->where('actif', true)->with('stocks')->first();
+            if (! $produit) {
+                return $this->erreur('Une pièce de ton panier n\'est plus disponible.', 409);
+            }
+            $reste = (int) $produit->stocks->firstWhere('taille', $taille)?->quantite;
+            if ($reste < $quantite) {
+                return $this->erreur($this->messageStock($produit, $taille, $reste), 409);
+            }
+            $lignes[] = ['libelle' => "{$produit->type} {$produit->nom} {$produit->couleur}", 'taille' => $taille, 'quantite' => $quantite];
+            $total += $quantite * $produit->prix;
+        }
+
+        return response()->json([
+            'total' => $total,
+            'lignes' => $lignes,
+            'adresse' => "{$client['quartier']}, {$client['commune']} (Abidjan)",
+            'telephone' => $client['telephone'],
+        ]);
+    }
+
+    /** Étape 3 : le client a payé et envoie sa capture → la précommande est créée. */
+    public function store(Request $request): JsonResponse
+    {
+        $donnees = json_decode((string) $request->input('donnees'), true);
+        if (! is_array($donnees)) {
+            return $this->erreur('Requête invalide.');
+        }
+        // pot de miel rempli = robot : on répond OK sans rien enregistrer
+        if (filled($donnees['website'] ?? null)) {
+            return response()->json(['reference' => 'TEF-AAAAA', 'total' => 0], 201);
+        }
+
+        $cle = 'precommande:'.$request->ip();
+        if (RateLimiter::tooManyAttempts($cle, self::LIMITE)) {
+            return $this->erreur('Trop de précommandes. Réessaie dans quelques minutes.', 429);
+        }
+
+        $v = Validator::make($request->all(), [
+            'capture' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:10240'],
+        ], [
+            'capture.required' => 'Envoie la capture d\'écran de ton paiement : sans paiement, la précommande n\'est pas validée.',
+            'capture.*' => 'Envoie une image de ta confirmation de paiement (jpg ou png, 10 Mo maximum).',
+        ]);
+        if ($v->fails()) {
+            return $this->erreur($v->errors()->first(), 422);
+        }
+
+        [$client, $demande, $erreur] = $this->valider($donnees);
+        if ($erreur) {
+            return $erreur;
+        }
+
+        $capture = $request->file('capture')->store('captures', 'local');
         try {
-            $p = DB::transaction(function () use ($client, $demande, $jeton) {
+            $p = DB::transaction(function () use ($client, $demande, $capture) {
                 $p = Precommande::create($client + [
                     'reference' => Precommande::nouvelleReference(),
-                    'jeton' => hash('sha256', $jeton),
+                    'jeton' => hash('sha256', Str::random(40)),
                     'total' => 0,
+                    'statut' => Statut::AVerifier,
+                    'capture' => $capture,
+                    'capture_le' => now(),
                 ]);
                 $this->reserver($p, $demande);
 
                 return $p;
             });
         } catch (RuntimeException $e) {
-            return $this->erreur($e->getMessage(), 409);
+            // stock parti entre-temps alors que le client a déjà payé : on garde la trace et on l'oriente vers WhatsApp
+            Storage::disk('local')->delete($capture);
+
+            return $this->erreur($e->getMessage().' Ton paiement est bien parti : écris-nous sur WhatsApp avec ta capture, on te propose une autre taille ou on te rembourse.', 409);
         }
 
         RateLimiter::hit($cle, self::FENETRE);
-        // pas d'e-mail au client ici : il reçoit sa confirmation seulement quand le paiement est validé (PaiementValide)
-        Courrier::envoyerEquipe(new NouvellePrecommande($p), $p->reference);
-
-        return response()->json($this->resume($p) + ['jeton' => $jeton], 201);
-    }
-
-    /** « Modifier mes coordonnées » / panier modifié après coup : la commande est mise à jour, pas dupliquée. */
-    public function update(Request $request, string $reference): JsonResponse
-    {
-        $p = Precommande::where('reference', $reference)->first();
-        if (! $p || ! $p->jetonValide($request->header('X-Jeton'))) {
-            return $this->erreur('Commande introuvable.', 404);
-        }
-        if (! $p->modifiable()) {
-            return $this->erreur('Cette commande ne peut plus être modifiée.', 409);
-        }
-
-        [$client, $demande, $erreur] = $this->valider($request);
-        if ($erreur) {
-            return $erreur;
-        }
-
-        try {
-            DB::transaction(function () use ($p, $client, $demande) {
-                $p->ajusterStock(+1);   // rend les pièces réservées…
-                $p->lignes()->delete();
-                $p->update($client);
-                $this->reserver($p, $demande); // …et réserve le nouveau panier
-            });
-        } catch (RuntimeException $e) {
-            return $this->erreur($e->getMessage(), 409);
-        }
-
-        return response()->json($this->resume($p->refresh()));
-    }
-
-    /** Capture d'écran du paiement Wave : rangée sur le disque privé, l'équipe reçoit un e-mail avec la capture. */
-    public function capture(Request $request, string $reference): JsonResponse
-    {
-        $p = Precommande::where('reference', $reference)->first();
-        if (! $p || ! $p->jetonValide($request->header('X-Jeton'))) {
-            return $this->erreur('Commande introuvable.', 404);
-        }
-        if (! in_array($p->statut, [Statut::EnAttente, Statut::AVerifier], true)) {
-            return $this->erreur('Cette commande est déjà traitée.', 409);
-        }
-
-        $v = Validator::make($request->all(), [
-            'capture' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:10240'],
-        ], ['capture.*' => 'Envoie une image de ta confirmation Wave (jpg ou png, 10 Mo maximum).']);
-        if ($v->fails()) {
-            return $this->erreur($v->errors()->first(), 422);
-        }
-
-        $ancienne = $p->capture;
-        $chemin = $request->file('capture')->store('captures', 'local');
-        $p->update(['capture' => $chemin, 'capture_le' => now(), 'statut' => Statut::AVerifier]);
-        if ($ancienne && $ancienne !== $chemin) {
-            Storage::disk('local')->delete($ancienne);
-        }
-
         Courrier::envoyerEquipe(new CaptureRecue($p), $p->reference);
 
-        return response()->json(['reference' => $p->reference, 'statut' => $p->statut->value]);
+        return response()->json(['reference' => $p->reference, 'total' => $p->total], 201);
     }
 
     /** @return array{0: array, 1: array<string,int>, 2: ?JsonResponse} */
-    private function valider(Request $request): array
+    private function valider(array $entree): array
     {
-        $v = Validator::make($request->all(), [
+        $v = Validator::make($entree, [
             'articles' => ['required', 'array', 'min:1', 'max:'.self::LIGNES_MAX],
             'articles.*.piece' => ['required', 'string'],
             'articles.*.taille' => ['required', Rule::in(Produit::TAILLES)],
@@ -200,10 +192,7 @@ class PrecommandeController extends Controller
                 ?? throw new RuntimeException('Une pièce de ton panier n\'est plus disponible.');
             $stock = Stock::where('produit_id', $produit->id)->where('taille', $taille)->lockForUpdate()->first();
             if (! $stock || $stock->quantite < $quantite) {
-                $reste = $stock?->quantite ?? 0;
-                throw new RuntimeException($reste
-                    ? "Plus que {$reste} en {$taille} pour {$produit->libelle}."
-                    : "{$produit->libelle} est épuisé en {$taille}.");
+                throw new RuntimeException($this->messageStock($produit, $taille, $stock?->quantite ?? 0));
             }
             $stock->decrement('quantite', $quantite);
             $p->lignes()->create([
@@ -215,21 +204,9 @@ class PrecommandeController extends Controller
         $p->update(['total' => $total]);
     }
 
-    private function resume(Precommande $p): array
+    private function messageStock(Produit $produit, string $taille, int $reste): string
     {
-        $p->loadMissing('lignes.produit');
-
-        return [
-            'reference' => $p->reference,
-            'total' => $p->total,
-            'lignes' => $p->lignes->map(fn ($l) => [
-                'libelle' => trim(($l->produit?->type ? $l->produit->type.' ' : '').($l->produit?->nom ?? $l->libelle)).($l->produit ? ' '.$l->produit->couleur : ''),
-                'taille' => $l->taille,
-                'quantite' => $l->quantite,
-            ]),
-            'adresse' => $p->adresse,
-            'telephone' => $p->telephone,
-        ];
+        return $reste ? "Plus que {$reste} en {$taille} pour {$produit->libelle}." : "{$produit->libelle} est épuisé en {$taille}.";
     }
 
     private function erreur(string $message, int $code = 400): JsonResponse
