@@ -121,7 +121,7 @@
     <p>Une identité, un état d’esprit et une communauté réunie par la musique et l’univers de Tiakola.</p>
     <p class="tvroom__fier"><strong>Être Tiakolisé</strong>, c’est vibrer au même rythme, partager la même énergie et être fier de faire partie du mouvement. 🇨🇮🌍</p>
   </div>
-  @include('partials.bento')
+  <div class="wall" id="wall" aria-hidden="true"></div>
 
   <div class="film" aria-label="Mélo Décalé. Fait par nous, pour nous. Parce que notre voix compte. Monétisez les clips afro francophones.">
     <div class="film__track" id="film" aria-hidden="true"></div>
@@ -139,6 +139,7 @@
 @php
     $mediasJs = [
         'tv' => ($medias['tv_image'] ?? collect())->map(fn ($m) => $m->url)->values(),
+        'tvVideos' => ($medias['tv_video'] ?? collect())->map(fn ($v) => ['src' => $v->url, 'poster' => $v->poster_url])->values(),
     ];
 @endphp
 <script>window.MEDIAS = @json($mediasJs);</script>
