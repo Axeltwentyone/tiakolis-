@@ -42,6 +42,12 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:ital,wdth,wght@0,62..125,400..800;1,62..125,400..800&display=swap">
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
+<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-WJ59PX48"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+</script>
 <body>
 
 <!-- ============ 0. CHARGEMENT — le message, puis le rideau monte ============ -->
