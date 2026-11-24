@@ -255,6 +255,14 @@
         <div class="mt-5 rounded-xl bg-nuit px-6 py-6 text-creme">
           <p class="text-xs font-bold tracking-[.2em] uppercase opacity-70">Montant à payer</p>
           <p data-montant class="mt-2 font-display text-[56px] leading-none tabular-nums"></p>
+          <!-- paiement en ligne Jeko (si activé) : validé automatiquement, sans capture -->
+          <div id="pc-jeko" hidden class="mt-5">
+            <p class="text-[13px] font-semibold text-ocre">Paie en ligne : ta précommande est validée automatiquement.</p>
+            <div id="pc-jeko-boutons" class="mt-3 grid gap-3"></div>
+            <p id="pc-jeko-erreur" role="alert" class="mt-3 hidden rounded-lg bg-rouge px-4 py-3 text-sm font-semibold text-creme"></p>
+            <button type="button" id="pc-vers-manuel" class="mt-4 text-[13px] font-semibold underline underline-offset-4 opacity-70 hover:opacity-100">Autre moyen : payer par lien et envoyer ta capture</button>
+          </div>
+          <div id="pc-manuel">
           <div class="mt-5 grid gap-3">
             <a id="pc-lien-om" hidden target="_blank" rel="noopener" class="flex h-14 items-center justify-between gap-3 rounded-lg bg-[#ff7900] px-5 text-nuit transition hover:brightness-105">
               <span class="text-[14px] font-bold tracking-[.06em] whitespace-nowrap uppercase min-[400px]:text-[15px] min-[400px]:tracking-[.12em]">Payer avec Orange Money</span><span class="text-xl" aria-hidden="true">↗</span>
@@ -270,8 +278,9 @@
               <button type="button" id="pc-copier" class="rounded-full border-2 border-creme/40 px-4 py-1 text-xs font-bold tracking-[.18em] uppercase transition hover:bg-creme hover:text-nuit">Copier</button>
             </div>
           </div>
+          </div>
         </div>
-        <ol class="mt-6 grid list-decimal gap-3 pl-6 text-[19px] leading-snug">
+        <ol id="pc-etapes" class="mt-6 grid list-decimal gap-3 pl-6 text-[19px] leading-snug">
           <li>Touche <strong>Orange Money</strong> ou <strong>Wave</strong> et paie <strong data-montant></strong>.</li>
           <li>Fais une <strong>capture d'écran</strong> de la confirmation de paiement.</li>
           <li>Envoie ta capture avec le <strong>bouton vert</strong> ci-dessous : ta précommande est enregistrée à ce moment-là.</li>
@@ -281,7 +290,8 @@
           <p class="text-sm font-semibold" data-etat>Envoi de ta capture…</p>
         </div>
         <p id="pc-erreur-capture" role="alert" class="mt-4 hidden rounded-lg bg-rouge/10 px-4 py-3 text-sm font-semibold text-rouge"></p>
-        <p class="mt-6 text-[15px] leading-snug text-nuit/70"><strong class="text-nuit">Sans paiement, pas de précommande :</strong> elle n'est enregistrée qu'avec la capture de ton paiement. On vérifie le paiement, puis on te répond sur le <span data-tel></span> pour caler la livraison. Le paiement couvre tes pièces : les frais de livraison Yango se règlent au livreur à la réception.</p>
+        <p id="pc-texte-jeko" hidden class="mt-6 text-[15px] leading-snug text-nuit/70"><strong class="text-nuit">Sans paiement, pas de précommande :</strong> elle est enregistrée dès que ton paiement est confirmé, et tu reçois un e-mail. On te répond ensuite sur WhatsApp pour caler la livraison. Le paiement couvre tes pièces : les frais de livraison Yango se règlent au livreur à la réception.</p>
+        <p id="pc-texte-capture" class="mt-6 text-[15px] leading-snug text-nuit/70"><strong class="text-nuit">Sans paiement, pas de précommande :</strong> elle n'est enregistrée qu'avec la capture de ton paiement. On vérifie le paiement, puis on te répond sur le <span data-tel></span> pour caler la livraison. Le paiement couvre tes pièces : les frais de livraison Yango se règlent au livreur à la réception.</p>
       </div>
       <footer class="grid gap-3 border-t-2 border-nuit px-5 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+14px)]">
         <label id="pc-envoyer" class="flex h-14 w-full cursor-pointer items-center justify-center rounded-md bg-[#25d366] px-3 text-center text-[13px] font-bold tracking-[.16em] whitespace-nowrap text-nuit uppercase transition hover:brightness-95 has-[:disabled]:cursor-wait has-[:disabled]:opacity-60 min-[400px]:text-sm min-[400px]:tracking-[.22em]">

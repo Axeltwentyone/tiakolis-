@@ -2,6 +2,7 @@
 @import "./theme.css"; /* palette et typo partagées avec le back office */
 @source "../views/site.blade.php";
 @source "../js/app.js";
+@source "../views/paiement-retour.blade.php";
 
 
 :root{--gutter:clamp(16px,2.4vw,36px);color-scheme:dark}

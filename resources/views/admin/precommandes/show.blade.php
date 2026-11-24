@@ -18,7 +18,16 @@
                     <h2 class="font-display text-2xl uppercase">Paiement</h2>
                     <p class="font-display text-3xl tabular-nums">{{ fcfa($p->total) }}</p>
                 </div>
-                @if ($p->capture)
+                @if ($p->paiement && str_starts_with($p->paiement, 'jeko'))
+                    {{-- payé en ligne : Jeko a confirmé le paiement, rien à vérifier à la main --}}
+                    <div class="mt-4 flex items-center gap-4 rounded-2xl bg-nuit px-5 py-4 text-creme">
+                        <span class="grid size-10 shrink-0 place-items-center rounded-full bg-ocre font-bold text-nuit">✓</span>
+                        <div>
+                            <p class="font-semibold">Payé en ligne avec Jeko · {{ \App\Support\Jeko::MOYENS[\Illuminate\Support\Str::after($p->paiement, 'jeko · ')] ?? $p->paiement }}</p>
+                            <p class="text-sm opacity-70">Paiement confirmé automatiquement par Jeko, le {{ $p->created_at->locale('fr')->isoFormat('D MMMM [à] HH:mm') }}. Le détail est dans le tableau de bord Jeko.</p>
+                        </div>
+                    </div>
+                @elseif ($p->capture)
                     <p class="mt-1 text-sm opacity-60">Capture reçue {{ $p->capture_le?->locale('fr')->isoFormat('[le] D MMMM [à] HH:mm') }}. Vérifie dans Wave ou Orange Money que tu as bien reçu {{ fcfa($p->total) }}.</p>
                     <a href="{{ route('admin.precommandes.capture', $p) }}" target="_blank" class="group mt-4 block overflow-hidden rounded-2xl bg-[#1dc4f0] p-3">
                         <img src="{{ route('admin.precommandes.capture', $p) }}" alt="Capture du paiement de {{ $p->nom }}" class="mx-auto max-h-[70vh] w-auto rounded-xl bg-white shadow-lg">

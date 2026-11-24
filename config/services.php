@@ -35,6 +35,20 @@ return [
         ],
     ],
 
+    // Jeko (paiement en ligne Orange Money, Wave, MTN, Moov) : https://developer.jeko.africa
+    // clés dans le tableau de bord Jeko → Paramètres → API & Webhooks ; vide = Jeko désactivé sur le site
+    'jeko' => [
+        'url' => env('JEKO_URL', 'https://api.jeko.africa'),
+        'api_key' => env('JEKO_API_KEY'),
+        'api_key_id' => env('JEKO_API_KEY_ID'),
+        'store_id' => env('JEKO_STORE_ID'),
+        'webhook_secret' => env('JEKO_WEBHOOK_SECRET'),
+        // adresse publique en https pour le retour du client (Jeko refuse http://localhost) ; vide = APP_URL
+        'url_retour' => env('JEKO_URL_RETOUR'),
+        // moyens proposés sur le site, dans cet ordre
+        'moyens' => array_filter(array_map('trim', explode(',', env('JEKO_MOYENS', 'orange,wave,mtn,moov')))),
+    ],
+
     // Tiakolisé et fière
     'precommandes' => [
         'notification_email' => env('NOTIFICATION_EMAIL'),

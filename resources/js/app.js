@@ -4,7 +4,7 @@
    ========================================================= */
 let PIECES = [];               // [{id, type, nom, couleur, prix, face, dos, stock:{S:20,…}}]
 let TAILLES = ["S","M","L","XL"];
-let COMMUNES = [], PAIEMENT = {};  // communes d'Abidjan (livraison Yango) ; {wave, lien (Wave), om (Orange Money), whatsapp}
+let COMMUNES = [], PAIEMENT = {};  // communes d'Abidjan (livraison Yango) ; {wave, lien (Wave), om (Orange Money), jeko (moyens en ligne), whatsapp}
 const QMAX = 5;                // quantité max par ligne (idem PrecommandeController)
 const fcfa = n => n.toLocaleString("fr-FR").replace(/\s/g," ")+" FCFA";
 const piece = id => PIECES.find(p=>p.id===id);
@@ -388,11 +388,43 @@ const tiroir = (function(){
       const a=document.getElementById(id); a.hidden=!url; if(url) a.href=url.replaceAll("{montant}",verif.total);
     }
     document.getElementById("pc-numero").hidden=!PAIEMENT.wave;
+    rendJeko();
     const resume=verif.lignes.map(l=>`${l.quantite} × ${l.libelle} (${l.taille})`).join(", ");
     const msg=`Bonjour ! J'ai payé ${fcfa(verif.total)} pour ma précommande : ${resume}. Livraison à ${verif.adresse}. Voici ma capture :`;
     document.getElementById("pc-whatsapp").href=`https://wa.me/${chiffres(PAIEMENT.whatsapp)}?text=${encodeURIComponent(msg)}`;
     apercu.hidden=true; errCapture.classList.add("hidden");
   }
+  /* ----- Paiement en ligne Jeko : le client paie sur pay.jeko.africa, la précommande est validée toute seule ----- */
+  const JEKO={orange:["Orange Money","#ff7900","text-nuit"],wave:["Wave","#1dc4f0","text-nuit"],mtn:["MTN MoMo","#ffcc00","text-nuit"],
+              moov:["Moov Money","#0a4ea0","text-creme"],djamo:["Djamo","#f6efe4","text-nuit"]};
+  let modeManuel=false;
+  function rendJeko(){
+    const moyens=(PAIEMENT.jeko||[]).filter(m=>JEKO[m]);
+    const enLigne=moyens.length>0 && !modeManuel;
+    document.getElementById("pc-jeko").hidden=!enLigne;
+    // mode manuel (liens + capture) : seul mode sans Jeko, ou choisi par le client
+    for(const id of ["pc-manuel","pc-etapes","pc-texte-capture","pc-envoyer"]) document.getElementById(id).hidden=enLigne;
+    document.getElementById("pc-texte-jeko").hidden=!enLigne;
+    document.getElementById("pc-jeko-boutons").innerHTML=moyens.map(m=>`<button type="button" data-jeko="${m}" class="flex h-14 items-center justify-between gap-3 rounded-lg px-5 ${JEKO[m][2]} transition hover:brightness-105 disabled:cursor-wait disabled:opacity-60" style="background:${JEKO[m][1]}">
+        <span class="text-[14px] font-bold tracking-[.06em] whitespace-nowrap uppercase min-[400px]:text-[15px] min-[400px]:tracking-[.12em]">Payer avec ${JEKO[m][0]}</span><span class="text-xl" aria-hidden="true">→</span></button>`).join("");
+  }
+  document.getElementById("pc-vers-manuel").addEventListener("click",()=>{ modeManuel=true; rendJeko(); });
+  document.getElementById("pc-jeko-boutons").addEventListener("click",async e=>{
+    const b=e.target.closest("[data-jeko]"); if(!b || !verif) return;
+    const err=document.getElementById("pc-jeko-erreur"); err.classList.add("hidden");
+    const boutons=document.querySelectorAll("[data-jeko]"); boutons.forEach(x=>x.disabled=true);
+    const texte=b.firstElementChild.textContent; b.firstElementChild.textContent="Ouverture du paiement…";
+    try{
+      const res=await fetch("/api/paiements/jeko",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({...verif.donnees,moyen:b.dataset.jeko})});
+      const json=await res.json().catch(()=>({}));
+      if(!res.ok || !json.redirectUrl) throw new Error(json.erreur||"Le paiement en ligne ne répond pas. Réessaie dans un instant.");
+      location.href=json.redirectUrl; // page de paiement Jeko ; retour sur /paiement/retour/{référence}
+    }catch(x){
+      err.textContent=x instanceof TypeError?"Connexion impossible. Réessaie dans un instant.":x.message; err.classList.remove("hidden");
+      boutons.forEach(x=>x.disabled=false); b.firstElementChild.textContent=texte;
+    }
+  });
+
   document.getElementById("pc-copier").addEventListener("click",async e=>{
     const b=e.currentTarget, num=(PAIEMENT.wave||"").replace(/\s/g,"");
     try{ await navigator.clipboard.writeText(num); b.textContent="Copié ✓"; }

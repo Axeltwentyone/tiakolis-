@@ -55,6 +55,9 @@
                         @endforeach
                     </select>
                     @include('admin.partials.statut', ['statut' => $p->statut])
+                    @if ($p->paiement && str_starts_with($p->paiement, 'jeko'))
+                        <span class="rounded-full bg-nuit px-2.5 py-1 text-[11px] font-bold tracking-[.1em] text-ocre uppercase" title="Payé en ligne avec Jeko">Jeko</span>
+                    @endif
                     @if ($p->capture)
                         <a href="{{ route('admin.precommandes.show', $p) }}#capture" title="Capture de paiement reçue" class="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#1dc4f0] ring-2 ring-nuit/10"><img src="{{ route('admin.precommandes.capture', $p) }}" alt="Capture Wave" class="size-full object-cover"></a>
                     @endif

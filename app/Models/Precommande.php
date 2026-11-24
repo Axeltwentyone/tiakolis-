@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 
-#[Fillable(['reference', 'jeton', 'nom', 'telephone', 'email', 'commune', 'quartier', 'note_client', 'livraison', 'total', 'statut', 'capture', 'capture_le', 'relance_le', 'relances', 'note'])]
+#[Fillable(['reference', 'jeton', 'nom', 'telephone', 'email', 'commune', 'quartier', 'note_client', 'livraison', 'total', 'statut', 'paiement', 'capture', 'capture_le', 'relance_le', 'relances', 'note'])]
 #[Hidden(['jeton'])]
 class Precommande extends Model
 {

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\TableauController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'site');
+Route::get('paiement/retour/{reference}', [\App\Http\Controllers\JekoController::class, 'retour'])->name('paiement.retour');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('guest')->group(function () {
