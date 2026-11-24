@@ -2,7 +2,7 @@
 <section class="mt-10">
     <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-            <h2 class="font-display text-3xl uppercase">En attente de paiement <span class="text-terre">{{ $nbAttente }}</span></h2>
+            <h2 class="font-display text-3xl uppercase">Anciennes commandes non payées <span class="text-terre">{{ $nbAttente }}</span></h2>
             <p class="text-sm opacity-60">Commandes passées sans capture de paiement. Les pièces restent réservées : relance les clients, ou annule la commande pour remettre les pièces en vente.</p>
         </div>
         @if ($nbAttente)

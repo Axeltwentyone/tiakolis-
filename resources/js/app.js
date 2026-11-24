@@ -398,6 +398,19 @@ const tiroir = (function(){
   const JEKO={orange:["Orange Money","#ff7900","text-nuit"],wave:["Wave","#1dc4f0","text-nuit"],mtn:["MTN MoMo","#ffcc00","text-nuit"],
               moov:["Moov Money","#0a4ea0","text-creme"],djamo:["Djamo","#f6efe4","text-nuit"]};
   let modeManuel=false;
+  // Wave : le lien de paiement est préparé dès l'affichage de l'écran, pour que le bouton soit un vrai lien.
+  // Sur téléphone, toucher un lien pay.wave.com ouvre directement l'application Wave (pas après une redirection automatique).
+  const PRET=["wave"]; let prets={}, signaturePrets=null;
+  async function prepare(m){
+    try{
+      const res=await fetch("/api/paiements/jeko",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({...verif.donnees,moyen:m})});
+      const json=await res.json().catch(()=>({}));
+      if(res.ok && json.redirectUrl && verif && signaturePrets===verif.signature){
+        prets[m]=json.redirectUrl;
+        const b=document.querySelector(`[data-jeko="${m}"]`); if(b){ b.href=json.redirectUrl; b.dataset.pret="1"; }
+      }
+    }catch{}
+  }
   function rendJeko(){
     const moyens=(PAIEMENT.jeko||[]).filter(m=>JEKO[m]);
     const enLigne=moyens.length>0 && !modeManuel;
@@ -405,14 +418,18 @@ const tiroir = (function(){
     // mode manuel (liens + capture) : seul mode sans Jeko, ou choisi par le client
     for(const id of ["pc-manuel","pc-etapes","pc-texte-capture","pc-envoyer"]) document.getElementById(id).hidden=enLigne;
     document.getElementById("pc-texte-jeko").hidden=!enLigne;
-    document.getElementById("pc-jeko-boutons").innerHTML=moyens.map(m=>`<button type="button" data-jeko="${m}" class="flex h-14 items-center justify-between gap-3 rounded-lg px-5 ${JEKO[m][2]} transition hover:brightness-105 disabled:cursor-wait disabled:opacity-60" style="background:${JEKO[m][1]}">
-        <span class="text-[14px] font-bold tracking-[.06em] whitespace-nowrap uppercase min-[400px]:text-[15px] min-[400px]:tracking-[.12em]">Payer avec ${JEKO[m][0]}</span><span class="text-xl" aria-hidden="true">→</span></button>`).join("");
+    if(signaturePrets!==verif?.signature){ prets={}; signaturePrets=verif?.signature; } // panier ou coordonnées changés : nouveaux liens
+    document.getElementById("pc-jeko-boutons").innerHTML=moyens.map(m=>`<a role="button" href="${prets[m]||"#"}" ${prets[m]?'data-pret="1"':""} data-jeko="${m}" class="flex h-14 items-center justify-between gap-3 rounded-lg px-5 ${JEKO[m][2]} transition hover:brightness-105 aria-disabled:cursor-wait aria-disabled:opacity-60" style="background:${JEKO[m][1]}">
+        <span class="text-[14px] font-bold tracking-[.06em] whitespace-nowrap uppercase min-[400px]:text-[15px] min-[400px]:tracking-[.12em]">Payer avec ${JEKO[m][0]}</span><span class="text-xl" aria-hidden="true">→</span></a>`).join("");
+    if(enLigne) for(const m of moyens) if(PRET.includes(m) && !prets[m]) prepare(m);
   }
   document.getElementById("pc-vers-manuel").addEventListener("click",()=>{ modeManuel=true; rendJeko(); });
   document.getElementById("pc-jeko-boutons").addEventListener("click",async e=>{
     const b=e.target.closest("[data-jeko]"); if(!b || !verif) return;
+    if(b.dataset.pret) return; // lien déjà prêt (Wave) : le navigateur l'ouvre lui-même → appli Wave
+    e.preventDefault();
     const err=document.getElementById("pc-jeko-erreur"); err.classList.add("hidden");
-    const boutons=document.querySelectorAll("[data-jeko]"); boutons.forEach(x=>x.disabled=true);
+    const boutons=document.querySelectorAll("[data-jeko]"); boutons.forEach(x=>x.setAttribute("aria-disabled","true"));
     const texte=b.firstElementChild.textContent; b.firstElementChild.textContent="Ouverture du paiement…";
     try{
       const res=await fetch("/api/paiements/jeko",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({...verif.donnees,moyen:b.dataset.jeko})});
@@ -421,7 +438,7 @@ const tiroir = (function(){
       location.href=json.redirectUrl; // page de paiement Jeko ; retour sur /paiement/retour/{référence}
     }catch(x){
       err.textContent=x instanceof TypeError?"Connexion impossible. Réessaie dans un instant.":x.message; err.classList.remove("hidden");
-      boutons.forEach(x=>x.disabled=false); b.firstElementChild.textContent=texte;
+      boutons.forEach(x=>x.removeAttribute("aria-disabled")); b.firstElementChild.textContent=texte;
     }
   });
 

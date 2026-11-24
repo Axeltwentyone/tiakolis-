@@ -13,7 +13,7 @@
         <a href="{{ route('admin.precommandes.index') }}" class="carte transition hover:-translate-y-0.5">
             <p class="surtitre">Commandes</p>
             <p class="mt-3 font-display text-6xl leading-none tabular-nums">{{ $nombre }}</p>
-            <p class="mt-2 text-sm opacity-60">dont {{ $enAttente }} en attente de paiement</p>
+            <p class="mt-2 text-sm opacity-60">{{ $nbEnLigne }} payée{{ $nbEnLigne > 1 ? 's' : '' }} en ligne @if ($enAttente)· {{ $enAttente }} en attente @endif</p>
         </a>
         <div class="carte bg-nuit! text-creme">
             <p class="surtitre">Chiffre d'affaires prévu</p>
@@ -28,7 +28,12 @@
         </div>
     </section>
 
-    @include('admin.partials.attente')
+    @include('admin.partials.paiements')
+    @include('admin.partials.abandons')
+    {{-- anciennes commandes passées avant le paiement obligatoire : seulement s'il en reste --}}
+    @if ($nbAttente)
+        @include('admin.partials.attente')
+    @endif
 
     <div class="mt-10 grid gap-10 xl:grid-cols-[1.4fr_1fr]">
         {{-- Dernières précommandes --}}

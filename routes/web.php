@@ -23,6 +23,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('precommandes', [PrecommandeController::class, 'index'])->name('precommandes.index');
         Route::get('precommandes/export', [PrecommandeController::class, 'export'])->name('precommandes.export');
         Route::get('precommandes/{precommande}', [PrecommandeController::class, 'show'])->name('precommandes.show');
+        Route::post('paiements/{paiement}/ignorer', function (\App\Models\Paiement $paiement) {
+            \App\Models\Paiement::whereIn('statut', ['en_cours', 'echec'])->where('donnees->email', $paiement->donnees['email'] ?? '-')->update(['statut' => 'ignore']);
+
+            return back()->with('ok', 'Panier retiré de la liste.');
+        })->name('paiements.ignorer');
         Route::post('precommandes/relancer', [PrecommandeController::class, 'relancerTous'])->name('precommandes.relancer-tous');
         Route::post('precommandes/{precommande}/relancer', [PrecommandeController::class, 'relancer'])->name('precommandes.relancer');
         Route::get('precommandes/{precommande}/capture', [PrecommandeController::class, 'capture'])->name('precommandes.capture');

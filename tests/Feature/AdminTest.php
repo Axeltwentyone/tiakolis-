@@ -120,7 +120,7 @@ class AdminTest extends TestCase
         Precommande::query()->update(['statut' => 'en_attente', 'capture' => null, 'capture_le' => null]);
         Precommande::where('email', 'ancien@example.test')->update(['email' => null]);
 
-        $this->get('/admin')->assertOk()->assertSee('En attente de paiement')->assertSee('Relancer tout le monde par e-mail (1)')->assertSee('wa.me/2250700000001', false);
+        $this->get('/admin')->assertOk()->assertSee('Anciennes commandes non payées')->assertSee('Relancer tout le monde par e-mail (1)')->assertSee('wa.me/2250700000001', false);
 
         $this->post('/admin/precommandes/relancer')->assertRedirect()->assertSessionHas('ok', fn ($m) => str_contains($m, '1 relance(s) envoyée(s)'));
         \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\RelancePaiement::class, 1);

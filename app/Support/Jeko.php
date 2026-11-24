@@ -42,19 +42,36 @@ class Jeko
             ->acceptJson()->asJson()->timeout(20);
     }
 
+    /** Moyens en « paiement direct » : le lien renvoyé ouvre l'appli de l'opérateur (pay.wave.com, page Orange Money). */
+    public const DIRECTS = ['wave', 'orange'];
+
+    /** Numéro ivoirien au format attendu par Jeko : +225 puis 01, 05 ou 07 et 8 chiffres. Null si autre format. */
+    public static function telephone(?string $numero): ?string
+    {
+        $c = preg_replace('/\D/', '', (string) $numero);
+        if (strlen($c) === 13 && str_starts_with($c, '225')) {
+            $c = substr($c, 3);
+        }
+
+        return preg_match('/^0[157]\d{8}$/', $c) ? '+225'.$c : null;
+    }
+
     /** Demande de paiement « redirect » : renvoie la réponse Jeko (id, status, redirectUrl…). */
     public static function creerDemande(Paiement $p, string $urlSucces, string $urlErreur): array
     {
+        $data = ['paymentMethod' => $p->moyen, 'successUrl' => $urlSucces, 'errorUrl' => $urlErreur];
+        // Wave / Orange Money : directement chez l'opérateur (sur mobile, le lien Wave ouvre l'application Wave)
+        $tel = self::telephone($p->donnees['telephone'] ?? null);
+        if (in_array($p->moyen, self::DIRECTS, true) && $tel) {
+            $data += ['forceProviderDirect' => true, 'payerPhone' => $tel];
+        }
+
         return self::http()->post('/partner_api/payment_requests', [
             'storeId' => config('services.jeko.store_id'),
             'amountCents' => $p->montant * 100,     // Jeko compte en centimes : 12 500 FCFA = 1 250 000
             'currency' => 'XOF',
             'reference' => $p->reference,
-            'paymentDetails' => ['type' => 'redirect', 'data' => [
-                'paymentMethod' => $p->moyen,
-                'successUrl' => $urlSucces,
-                'errorUrl' => $urlErreur,
-            ]],
+            'paymentDetails' => ['type' => 'redirect', 'data' => $data],
         ])->throw()->json();
     }
 

@@ -28,7 +28,7 @@ class JekoController extends Controller
             return response()->json(['erreur' => 'Requête invalide.'], 400);
         }
         $cle = 'jeko:'.$request->ip();
-        if (RateLimiter::tooManyAttempts($cle, 10)) {
+        if (RateLimiter::tooManyAttempts($cle, 20)) { // un peu de marge : le lien Wave est préparé dès l'écran Paiement
             return response()->json(['erreur' => 'Trop de tentatives. Réessaie dans quelques minutes.'], 429);
         }
         RateLimiter::hit($cle, 10 * 60);

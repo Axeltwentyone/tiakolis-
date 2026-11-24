@@ -145,4 +145,48 @@ class JekoTest extends TestCase
         $this->payer()->assertStatus(502)->assertJsonPath('erreur', fn ($e) => str_contains($e, 'ne répond pas'));
         $this->assertSame('echec', Paiement::first()->statut);
     }
+
+    public function test_wave_et_orange_en_paiement_direct_mtn_sur_la_page_jeko(): void
+    {
+        Http::fake(['api.jeko.africa/*' => Http::response(['id' => 'pr-1', 'redirectUrl' => 'https://pay.wave.com/c/cos-1'])]);
+
+        $this->payer('wave')->assertOk()->assertJsonPath('redirectUrl', 'https://pay.wave.com/c/cos-1');
+        Http::assertSent(fn (RequeteHttp $q) => ($q['paymentDetails']['data']['paymentMethod'] ?? null) === 'wave'
+            && $q['paymentDetails']['data']['forceProviderDirect'] === true
+            && $q['paymentDetails']['data']['payerPhone'] === '+2250700235034'); // 0700235034 → +225…
+
+        $this->payer('mtn');
+        Http::assertSent(fn (RequeteHttp $q) => ($q['paymentDetails']['data']['paymentMethod'] ?? null) === 'mtn'
+            && ! isset($q['paymentDetails']['data']['forceProviderDirect']));
+    }
+
+    public function test_format_du_numero_pour_jeko(): void
+    {
+        $this->assertSame('+2250700235034', \App\Support\Jeko::telephone('07 00 23 50 34'));
+        $this->assertSame('+2250102030405', \App\Support\Jeko::telephone('+225 01 02 03 04 05'));
+        $this->assertNull(\App\Support\Jeko::telephone('0600000000')); // préfixe non ivoirien : page Jeko classique
+    }
+
+    public function test_le_tableau_de_bord_montre_les_paiements_en_ligne_et_les_paniers_non_payes(): void
+    {
+        $this->actingAs(\App\Models\User::factory()->create());
+        Http::fake(['api.jeko.africa/*' => Http::response(['id' => 'pr-1', 'redirectUrl' => 'https://pay.wave.com/c/1'])]);
+
+        // un client paie avec Wave, un autre abandonne au paiement
+        $ref = $this->payer('wave')->json('reference');
+        $this->webhook(['id' => 'tr-1', 'status' => 'success', 'transactionType' => 'payment', 'transactionDetails' => ['id' => 'pr-1', 'reference' => $ref]]);
+        $this->postJson('/api/paiements/jeko', $this->client(['nom' => 'Awa Koné', 'email' => 'awa@example.test', 'telephone' => '0500000001'])
+            + ['moyen' => 'orange', 'articles' => [['piece' => 'melo-noir', 'taille' => 'S', 'quantite' => 1]]]);
+        $this->travel(40)->minutes();
+
+        $this->get('/admin')->assertOk()
+            ->assertSee('Encaissé en ligne · Jeko')->assertSee('25 000')
+            ->assertSee('Paniers non payés')->assertSee('Awa Koné')->assertSee('wa.me/2250500000001', false)
+            ->assertDontSee('Anciennes commandes non payées');
+
+        // « Ignorer » retire le panier de la liste
+        $abandon = Paiement::where('donnees->email', 'awa@example.test')->first();
+        $this->post("/admin/paiements/{$abandon->id}/ignorer")->assertRedirect();
+        $this->get('/admin')->assertDontSee('Awa Koné');
+    }
 }
